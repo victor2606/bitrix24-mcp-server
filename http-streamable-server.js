@@ -116,7 +116,7 @@ const httpServer = createServer(async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Last-Event-ID');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Last-Event-ID, X-Bitrix24-Webhook');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
@@ -243,7 +243,7 @@ const httpServer = createServer(async (req, res) => {
   }
 
   // MCP POST endpoint - handle JSON-RPC requests
-  if (req.method === 'POST' && req.url === MCP_ENDPOINT) {
+  if (req.method === 'POST' && (req.url === MCP_ENDPOINT || req.url.startsWith(MCP_ENDPOINT + '?'))) {
     let body = '';
 
     req.on('data', chunk => {
@@ -255,6 +255,25 @@ const httpServer = createServer(async (req, res) => {
         // Parse JSON-RPC request
         const jsonrpcRequest = JSON.parse(body);
         console.error('\n📨 Received JSON-RPC request:', JSON.stringify(jsonrpcRequest, null, 2));
+
+        // Extract webhook from request (header > query > body)
+        const webhookFromHeader = req.headers['x-bitrix24-webhook'];
+        const webhookFromQuery = new URL(req.url, `http://${req.headers.host}`).searchParams.get('webhook');
+
+        // Inject webhook into arguments if provided
+        if (jsonrpcRequest.params && jsonrpcRequest.params.arguments) {
+          if (webhookFromHeader) {
+            jsonrpcRequest.params.arguments._bitrix24_webhook = webhookFromHeader;
+            console.error('🔑 Using webhook from X-Bitrix24-Webhook header');
+          } else if (webhookFromQuery) {
+            jsonrpcRequest.params.arguments._bitrix24_webhook = webhookFromQuery;
+            console.error('🔑 Using webhook from ?webhook= query parameter');
+          } else if (jsonrpcRequest.params.arguments._bitrix24_webhook) {
+            console.error('🔑 Using webhook from request body');
+          } else {
+            console.error('🔑 Using default webhook from BITRIX24_WEBHOOK_URL env');
+          }
+        }
 
         // Process the request
         const response = await handleMCPRequest(jsonrpcRequest);

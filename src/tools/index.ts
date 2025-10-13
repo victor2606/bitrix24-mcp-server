@@ -1,5 +1,13 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { bitrix24Client, BitrixContact, BitrixDeal, BitrixTask, BitrixLead, BitrixCompany } from '../bitrix24/client.js';
+import { bitrix24Client, Bitrix24Client, BitrixContact, BitrixDeal, BitrixTask, BitrixLead, BitrixCompany } from '../bitrix24/client.js';
+
+// Helper function to get client from request arguments
+export function getClientFromRequest(args: any): Bitrix24Client {
+  if (args._bitrix24_webhook && typeof args._bitrix24_webhook === 'string') {
+    return new Bitrix24Client(args._bitrix24_webhook);
+  }
+  return bitrix24Client; // fallback to default
+}
 
 // Contact Management Tools
 export const createContactTool: Tool = {
@@ -1058,6 +1066,9 @@ export const allTools = [
 
 // Tool execution handlers
 export async function executeToolCall(name: string, args: any): Promise<any> {
+  // Get client from request arguments (supports multi-tenant)
+  const client = getClientFromRequest(args);
+
   try {
     switch (name) {
       case 'bitrix24_create_contact':
@@ -1070,22 +1081,22 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           POST: args.position,
           COMMENTS: args.comments
         };
-        const contactId = await bitrix24Client.createContact(contact);
+        const contactId = await client.createContact(contact);
         return { success: true, contactId, message: `Contact created with ID: ${contactId}` };
 
       case 'bitrix24_get_contact':
-        const contactData = await bitrix24Client.getContact(args.id);
+        const contactData = await client.getContact(args.id);
         return { success: true, contact: contactData };
 
       case 'bitrix24_list_contacts':
-        const contacts = await bitrix24Client.listContacts({
+        const contacts = await client.listContacts({
           start: 0,
           filter: args.filter
         });
         return { success: true, contacts: contacts.slice(0, args.limit || 20) };
 
       case 'bitrix24_get_latest_contacts':
-        const latestContacts = await bitrix24Client.getLatestContacts(args.limit || 20);
+        const latestContacts = await client.getLatestContacts(args.limit || 20);
         return { success: true, contacts: latestContacts };
 
       case 'bitrix24_update_contact':
@@ -1097,8 +1108,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         if (args.company) updateContact.COMPANY_TITLE = args.company;
         if (args.position) updateContact.POST = args.position;
         if (args.comments) updateContact.COMMENTS = args.comments;
-        
-        const contactUpdated = await bitrix24Client.updateContact(args.id, updateContact);
+
+        const contactUpdated = await client.updateContact(args.id, updateContact);
         return { success: true, updated: contactUpdated, message: `Contact ${args.id} updated successfully` };
 
       case 'bitrix24_create_deal':
@@ -1110,18 +1121,18 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           STAGE_ID: args.stageId,
           COMMENTS: args.comments
         };
-        const dealId = await bitrix24Client.createDeal(deal);
+        const dealId = await client.createDeal(deal);
         return { success: true, dealId, message: `Deal created with ID: ${dealId}` };
 
       case 'bitrix24_get_deal':
-        const dealData = await bitrix24Client.getDeal(args.id);
+        const dealData = await client.getDeal(args.id);
         return { success: true, deal: dealData };
 
       case 'bitrix24_list_deals':
         const dealOrder: Record<string, string> = {};
         dealOrder[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
-        
-        const deals = await bitrix24Client.listDeals({
+
+        const deals = await client.listDeals({
           start: 0,
           filter: args.filter,
           order: dealOrder,
@@ -1130,11 +1141,11 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         return { success: true, deals: deals.slice(0, args.limit || 20) };
 
       case 'bitrix24_get_latest_deals':
-        const latestDeals = await bitrix24Client.getLatestDeals(args.limit || 20);
+        const latestDeals = await client.getLatestDeals(args.limit || 20);
         return { success: true, deals: latestDeals };
 
       case 'bitrix24_get_deals_from_date_range':
-        const dateRangeDeals = await bitrix24Client.getDealsFromDateRange(
+        const dateRangeDeals = await client.getDealsFromDateRange(
           args.startDate,
           args.endDate,
           args.limit || 50
@@ -1149,8 +1160,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         if (args.contactId) updateDeal.CONTACT_ID = args.contactId;
         if (args.stageId) updateDeal.STAGE_ID = args.stageId;
         if (args.comments) updateDeal.COMMENTS = args.comments;
-        
-        const dealUpdated = await bitrix24Client.updateDeal(args.id, updateDeal);
+
+        const dealUpdated = await client.updateDeal(args.id, updateDeal);
         return { success: true, updated: dealUpdated, message: `Deal ${args.id} updated successfully` };
 
       case 'bitrix24_create_lead':
@@ -1167,18 +1178,18 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           CURRENCY_ID: args.currency || 'EUR',
           COMMENTS: args.comments
         };
-        const leadId = await bitrix24Client.createLead(lead);
+        const leadId = await client.createLead(lead);
         return { success: true, leadId, message: `Lead created with ID: ${leadId}` };
 
       case 'bitrix24_get_lead':
-        const leadData = await bitrix24Client.getLead(args.id);
+        const leadData = await client.getLead(args.id);
         return { success: true, lead: leadData };
 
       case 'bitrix24_list_leads':
         const leadOrder: Record<string, string> = {};
         leadOrder[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
-        
-        const leads = await bitrix24Client.listLeads({
+
+        const leads = await client.listLeads({
           start: 0,
           filter: args.filter,
           order: leadOrder,
@@ -1187,11 +1198,11 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         return { success: true, leads: leads.slice(0, args.limit || 20) };
 
       case 'bitrix24_get_latest_leads':
-        const latestLeads = await bitrix24Client.getLatestLeads(args.limit || 20);
+        const latestLeads = await client.getLatestLeads(args.limit || 20);
         return { success: true, leads: latestLeads };
 
       case 'bitrix24_get_leads_from_date_range':
-        const dateRangeLeads = await bitrix24Client.getLeadsFromDateRange(
+        const dateRangeLeads = await client.getLeadsFromDateRange(
           args.startDate,
           args.endDate,
           args.limit || 50
@@ -1211,8 +1222,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         if (args.opportunity) updateLead.OPPORTUNITY = args.opportunity;
         if (args.currency) updateLead.CURRENCY_ID = args.currency;
         if (args.comments) updateLead.COMMENTS = args.comments;
-        
-        const leadUpdated = await bitrix24Client.updateLead(args.id, updateLead);
+
+        const leadUpdated = await client.updateLead(args.id, updateLead);
         return { success: true, updated: leadUpdated, message: `Lead ${args.id} updated successfully` };
 
       case 'bitrix24_create_company':
@@ -1229,18 +1240,18 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           COMMENTS: args.comments,
           ASSIGNED_BY_ID: args.assignedById
         };
-        const companyId = await bitrix24Client.createCompany(company);
+        const companyId = await client.createCompany(company);
         return { success: true, companyId, message: `Company created with ID: ${companyId}` };
 
       case 'bitrix24_get_company':
-        const companyData = await bitrix24Client.getCompany(args.id);
+        const companyData = await client.getCompany(args.id);
         return { success: true, company: companyData };
 
       case 'bitrix24_list_companies':
         const companyOrder: Record<string, string> = {};
         companyOrder[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
         
-        const companies = await bitrix24Client.listCompanies({
+        const companies = await client.listCompanies({
           start: 0,
           filter: args.filter,
           order: companyOrder,
@@ -1262,15 +1273,15 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         if (args.comments) updateCompany.COMMENTS = args.comments;
         if (args.assignedById) updateCompany.ASSIGNED_BY_ID = args.assignedById;
         
-        const companyUpdated = await bitrix24Client.updateCompany(args.id, updateCompany);
+        const companyUpdated = await client.updateCompany(args.id, updateCompany);
         return { success: true, updated: companyUpdated, message: `Company ${args.id} updated successfully` };
 
       case 'bitrix24_get_latest_companies':
-        const latestCompanies = await bitrix24Client.getLatestCompanies(args.limit || 20);
+        const latestCompanies = await client.getLatestCompanies(args.limit || 20);
         return { success: true, companies: latestCompanies };
 
       case 'bitrix24_get_companies_from_date_range':
-        const dateRangeCompanies = await bitrix24Client.getCompaniesFromDateRange(
+        const dateRangeCompanies = await client.getCompaniesFromDateRange(
           args.startDate,
           args.endDate,
           args.limit || 50
@@ -1286,15 +1297,15 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           PRIORITY: args.priority || '1',
           UF_CRM_TASK: args.crmEntities
         };
-        const taskId = await bitrix24Client.createTask(task);
+        const taskId = await client.createTask(task);
         return { success: true, taskId, message: `Task created with ID: ${taskId}` };
 
       case 'bitrix24_get_task':
-        const taskData = await bitrix24Client.getTask(args.id);
+        const taskData = await client.getTask(args.id);
         return { success: true, task: taskData };
 
       case 'bitrix24_list_tasks':
-        const tasks = await bitrix24Client.listTasks({
+        const tasks = await client.listTasks({
           filter: args.filter,
           select: args.select || ['*']
         });
@@ -1309,40 +1320,40 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         if (args.priority) updateTask.PRIORITY = args.priority;
         if (args.status) updateTask.STATUS = args.status;
 
-        const taskUpdated = await bitrix24Client.updateTask(args.id, updateTask);
+        const taskUpdated = await client.updateTask(args.id, updateTask);
         return { success: true, updated: taskUpdated, message: `Task ${args.id} updated successfully` };
 
       case 'bitrix24_search_crm':
-        const searchResults = await bitrix24Client.searchCRM(args.query, args.entityTypes);
+        const searchResults = await client.searchCRM(args.query, args.entityTypes);
         return { success: true, results: searchResults };
 
       case 'bitrix24_validate_webhook':
-        const isValid = await bitrix24Client.validateWebhook();
+        const isValid = await client.validateWebhook();
         return { success: true, valid: isValid, message: isValid ? 'Webhook is valid' : 'Webhook validation failed' };
 
       case 'bitrix24_diagnose_permissions':
-        const permissionResults = await bitrix24Client.diagnosePermissions();
+        const permissionResults = await client.diagnosePermissions();
         return { success: true, diagnosis: permissionResults };
 
       case 'bitrix24_check_crm_settings':
-        const crmSettings = await bitrix24Client.checkCRMSettings();
+        const crmSettings = await client.checkCRMSettings();
         return { success: true, settings: crmSettings };
 
       case 'bitrix24_test_leads_api':
-        const leadsTest = await bitrix24Client.testLeadsAPI();
+        const leadsTest = await client.testLeadsAPI();
         return { success: true, tests: leadsTest };
 
       // Phase 1: Enhanced Deal Filtering Tools
       case 'bitrix24_get_deal_pipelines':
-        const pipelines = await bitrix24Client.getDealPipelines();
+        const pipelines = await client.getDealPipelines();
         return { success: true, pipelines, message: `Found ${pipelines.length} deal pipelines` };
 
       case 'bitrix24_get_deal_stages':
-        const stages = await bitrix24Client.getDealStages(args.pipelineId);
+        const stages = await client.getDealStages(args.pipelineId);
         return { success: true, stages, message: `Found ${stages.length} deal stages` };
 
       case 'bitrix24_filter_deals_by_pipeline':
-        const pipelineDeals = await bitrix24Client.filterDealsByPipeline(args.pipelineId, {
+        const pipelineDeals = await client.filterDealsByPipeline(args.pipelineId, {
           limit: args.limit,
           orderBy: args.orderBy,
           orderDirection: args.orderDirection
@@ -1355,7 +1366,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_filter_deals_by_budget':
-        const budgetDeals = await bitrix24Client.filterDealsByBudget(
+        const budgetDeals = await client.filterDealsByBudget(
           args.minBudget, 
           args.maxBudget, 
           args.currency || 'EUR',
@@ -1376,7 +1387,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_filter_deals_by_status':
-        const statusDeals = await bitrix24Client.filterDealsByStatus(
+        const statusDeals = await client.filterDealsByStatus(
           args.stageIds, 
           args.pipelineId,
           {
@@ -1397,7 +1408,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
 
       // Sales Team Monitoring Tools
       case 'bitrix24_monitor_user_activities':
-        const userActivities = await bitrix24Client.monitorUserActivities(
+        const userActivities = await client.monitorUserActivities(
           args.userId,
           args.startDate,
           args.endDate,
@@ -1415,7 +1426,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_get_user_performance_summary':
-        const performanceSummary = await bitrix24Client.getUserPerformanceSummary(
+        const performanceSummary = await client.getUserPerformanceSummary(
           args.userId,
           args.startDate,
           args.endDate,
@@ -1432,7 +1443,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_analyze_account_performance':
-        const accountPerformance = await bitrix24Client.analyzeAccountPerformance(
+        const accountPerformance = await client.analyzeAccountPerformance(
           args.accountId,
           args.accountType,
           args.startDate,
@@ -1450,7 +1461,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_compare_user_performance':
-        const userComparison = await bitrix24Client.compareUserPerformance(
+        const userComparison = await client.compareUserPerformance(
           args.userIds,
           args.startDate,
           args.endDate,
@@ -1467,7 +1478,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_track_deal_progression':
-        const dealProgression = await bitrix24Client.trackDealProgression(
+        const dealProgression = await client.trackDealProgression(
           args.dealId,
           args.userId,
           args.pipelineId,
@@ -1486,7 +1497,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_monitor_sales_activities':
-        const salesActivities = await bitrix24Client.monitorSalesActivities(
+        const salesActivities = await client.monitorSalesActivities(
           args.userId,
           args.startDate,
           args.endDate,
@@ -1504,7 +1515,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_generate_sales_report':
-        const salesReport = await bitrix24Client.generateSalesReport(
+        const salesReport = await client.generateSalesReport(
           args.reportType,
           args.startDate,
           args.endDate,
@@ -1522,7 +1533,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_get_team_dashboard':
-        const teamDashboard = await bitrix24Client.getTeamDashboard({
+        const teamDashboard = await client.getTeamDashboard({
           includeRealTimeMetrics: args.includeRealTimeMetrics,
           includeTopPerformers: args.includeTopPerformers,
           includeAttentionNeeded: args.includeAttentionNeeded,
@@ -1536,7 +1547,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_analyze_customer_engagement':
-        const customerEngagement = await bitrix24Client.analyzeCustomerEngagement(
+        const customerEngagement = await client.analyzeCustomerEngagement(
           args.accountId,
           args.accountType,
           args.userId,
@@ -1556,7 +1567,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         };
 
       case 'bitrix24_forecast_performance':
-        const performanceForecast = await bitrix24Client.forecastPerformance(
+        const performanceForecast = await client.forecastPerformance(
           args.forecastType,
           args.userId,
           {
@@ -1575,62 +1586,62 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
 
       // User Management Tools
       case 'bitrix24_get_user':
-        const userData = await bitrix24Client.getUser(args.userId);
+        const userData = await client.getUser(args.userId);
         return { success: true, user: userData };
 
       case 'bitrix24_get_all_users':
-        const allUsers = await bitrix24Client.getAllUsers();
+        const allUsers = await client.getAllUsers();
         return { success: true, users: allUsers, message: `Found ${allUsers.length} users` };
 
       case 'bitrix24_resolve_user_names':
-        const userNames = await bitrix24Client.resolveUserNames(args.userIds);
+        const userNames = await client.resolveUserNames(args.userIds);
         return { success: true, userNames, message: `Resolved ${Object.keys(userNames).length} user names` };
 
       case 'bitrix24_get_contacts_with_user_names':
-        const contactsRaw = await bitrix24Client.listContacts({
+        const contactsRaw = await client.listContacts({
           start: 0,
           filter: args.filter
         });
-        const contactsWithNames = await bitrix24Client.enhanceWithUserNames(contactsRaw.slice(0, args.limit || 20));
+        const contactsWithNames = await client.enhanceWithUserNames(contactsRaw.slice(0, args.limit || 20));
         return { success: true, contacts: contactsWithNames, message: `Retrieved ${contactsWithNames.length} contacts with user names resolved` };
 
       case 'bitrix24_get_deals_with_user_names':
         const dealOrderWithNames: Record<string, string> = {};
         dealOrderWithNames[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
         
-        const dealsRaw = await bitrix24Client.listDeals({
+        const dealsRaw = await client.listDeals({
           start: 0,
           filter: args.filter,
           order: dealOrderWithNames,
           select: ['*']
         });
-        const dealsWithNames = await bitrix24Client.enhanceWithUserNames(dealsRaw.slice(0, args.limit || 20));
+        const dealsWithNames = await client.enhanceWithUserNames(dealsRaw.slice(0, args.limit || 20));
         return { success: true, deals: dealsWithNames, message: `Retrieved ${dealsWithNames.length} deals with user names resolved` };
 
       case 'bitrix24_get_leads_with_user_names':
         const leadOrderWithNames: Record<string, string> = {};
         leadOrderWithNames[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
         
-        const leadsRaw = await bitrix24Client.listLeads({
+        const leadsRaw = await client.listLeads({
           start: 0,
           filter: args.filter,
           order: leadOrderWithNames,
           select: ['*']
         });
-        const leadsWithNames = await bitrix24Client.enhanceWithUserNames(leadsRaw.slice(0, args.limit || 20));
+        const leadsWithNames = await client.enhanceWithUserNames(leadsRaw.slice(0, args.limit || 20));
         return { success: true, leads: leadsWithNames, message: `Retrieved ${leadsWithNames.length} leads with user names resolved` };
 
       case 'bitrix24_get_companies_with_user_names':
         const companyOrderWithNames: Record<string, string> = {};
         companyOrderWithNames[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
         
-        const companiesRaw = await bitrix24Client.listCompanies({
+        const companiesRaw = await client.listCompanies({
           start: 0,
           filter: args.filter,
           order: companyOrderWithNames,
           select: ['*']
         });
-        const companiesWithNames = await bitrix24Client.enhanceWithUserNames(companiesRaw.slice(0, args.limit || 20));
+        const companiesWithNames = await client.enhanceWithUserNames(companiesRaw.slice(0, args.limit || 20));
         return { success: true, companies: companiesWithNames, message: `Retrieved ${companiesWithNames.length} companies with user names resolved` };
 
       default:
