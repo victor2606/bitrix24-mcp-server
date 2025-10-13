@@ -5,14 +5,10 @@
 nixPkgs = ["nodejs-20_x"]
 
 [phases.install]
-cmds = [
-  "npm ci --only=production"
-]
+cmd = "npm ci --only=production"
 
 [phases.build]
-cmds = [
-  "npm run build"
-]
+cmd = "npm run build"
 
 [start]
 cmd = "node http-streamable-server.js"
