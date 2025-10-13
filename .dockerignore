@@ -2,10 +2,8 @@
 node_modules/
 npm-debug.log
 yarn-error.log
-package-lock.json
 
-# Build output
-build/
+# Build output (build/ is needed for production image)
 dist/
 
 # Environment files
@@ -52,8 +50,6 @@ temp/
 
 # Development files
 nodemon.json
-tsconfig.json
-src/
 
 # Azure specific
 .deployment
