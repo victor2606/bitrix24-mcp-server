@@ -644,6 +644,7 @@ export const createTaskTool: Tool = {
       title: { type: 'string', description: 'Task title' },
       description: { type: 'string', description: 'Task description' },
       responsibleId: { type: 'string', description: 'Responsible user ID' },
+      groupId: { type: 'string', description: 'Group/Project ID to associate task with' },
       deadline: { type: 'string', description: 'Task deadline in YYYY-MM-DD format' },
       priority: {
         type: 'string',
@@ -1144,7 +1145,12 @@ export const getAllUsersTool: Tool = {
   inputSchema: {
     type: 'object',
     properties: {
-      includeInactive: { type: 'boolean', description: 'Include inactive users', default: false }
+      includeInactive: { type: 'boolean', description: 'Include inactive users', default: false },
+      compact: {
+        type: 'boolean',
+        description: 'Return only essential fields (ID, NAME, LAST_NAME, EMAIL, ACTIVE, IS_ONLINE). Set to false for full user details.',
+        default: true
+      }
     }
   }
 };
@@ -1663,6 +1669,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           TITLE: args.title,
           DESCRIPTION: args.description,
           RESPONSIBLE_ID: args.responsibleId,
+          GROUP_ID: args.groupId,
           DEADLINE: args.deadline,
           PRIORITY: args.priority || '1',
           UF_CRM_TASK: args.crmEntities
@@ -1962,7 +1969,28 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
 
       case 'bitrix24_get_all_users':
         const allUsers = await client.getAllUsers(args.includeInactive || false);
-        return { success: true, users: allUsers, message: `Found ${allUsers.length} users` };
+
+        if (args.compact !== false) {
+          const compactUsers = allUsers.map((u: any) => ({
+            ID: u.ID,
+            NAME: u.NAME,
+            LAST_NAME: u.LAST_NAME,
+            EMAIL: u.EMAIL,
+            ACTIVE: u.ACTIVE,
+            IS_ONLINE: u.IS_ONLINE
+          }));
+          return {
+            success: true,
+            users: compactUsers,
+            message: `Found ${compactUsers.length} users (compact mode)`
+          };
+        }
+
+        return {
+          success: true,
+          users: allUsers,
+          message: `Found ${allUsers.length} users (full details)`
+        };
 
       case 'bitrix24_resolve_user_names':
         const userNames = await client.resolveUserNames(args.userIds);
