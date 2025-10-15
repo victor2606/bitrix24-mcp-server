@@ -500,6 +500,26 @@ export const listProjectsTool: Tool = {
   }
 };
 
+export const searchProjectsTool: Tool = {
+  name: 'bitrix24_search_projects',
+  description: 'Search projects by name using partial match (case-insensitive). Useful when you know part of the project name.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Search query - will match any project whose name contains this text (case-insensitive)'
+      },
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include inactive projects (default: false, only active projects)',
+        default: false
+      }
+    },
+    required: ['query']
+  }
+};
+
 export const updateGroupTool: Tool = {
   name: 'bitrix24_update_group',
   description: 'Update an existing group or project in Bitrix24',
@@ -1259,6 +1279,7 @@ export const allTools = [
   getGroupTool,
   listGroupsTool,
   listProjectsTool,
+  searchProjectsTool,
   updateGroupTool,
   deleteGroupTool,
   getUserGroupsTool,
@@ -1578,6 +1599,22 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           includeInactive: args.includeInactive || false
         });
         return { success: true, projects };
+
+      case 'bitrix24_search_projects':
+        const allProjects = await client.listProjects({
+          start: 0,
+          includeInactive: args.includeInactive || false
+        });
+        const searchQuery = args.query.toLowerCase();
+        const matchedProjects = allProjects.filter((project: any) =>
+          project.NAME && project.NAME.toLowerCase().includes(searchQuery)
+        );
+        return {
+          success: true,
+          projects: matchedProjects,
+          count: matchedProjects.length,
+          message: `Found ${matchedProjects.length} projects matching "${args.query}"`
+        };
 
       case 'bitrix24_update_group':
         const updateGroup: Partial<BitrixGroup> = {};
@@ -1924,7 +1961,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         return { success: true, user: userData };
 
       case 'bitrix24_get_all_users':
-        const allUsers = await client.getAllUsers();
+        const allUsers = await client.getAllUsers(args.includeInactive || false);
         return { success: true, users: allUsers, message: `Found ${allUsers.length} users` };
 
       case 'bitrix24_resolve_user_names':

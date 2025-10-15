@@ -694,8 +694,15 @@ export class Bitrix24Client {
     return await this.makeRequest('user.get', { ID: userId });
   }
 
-  async getAllUsers(): Promise<any[]> {
-    return await this.makeRequest('user.get');
+  async getAllUsers(includeInactive: boolean = false): Promise<any[]> {
+    const users = await this.makeRequest('user.get');
+
+    if (!includeInactive) {
+      // Фильтруем только активных пользователей
+      return users.filter((user: any) => user.ACTIVE !== false);
+    }
+
+    return users;
   }
 
   async getUsersByIds(userIds: string[]): Promise<any[]> {

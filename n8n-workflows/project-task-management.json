@@ -1,0 +1,109 @@
+{
+  "name": "Project Task Management - Bitrix24 MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0],
+      "id": "chat-trigger",
+      "name": "Chat Interface",
+      "webhookId": "project-task-chat"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Ты опытный менеджер проектов, работающий с Bitrix24.\n\nТвои обязанности:\n- Помогать создавать и управлять проектами\n- Создавать и отслеживать задачи\n- Назначать ответственных за задачи\n- Контролировать дедлайны\n- Анализировать прогресс проектов\n\nИспользуй доступные инструменты Bitrix24:\n- bitrix24_create_group - создать проект\n- bitrix24_list_projects - список проектов\n- bitrix24_create_task - создать задачу\n- bitrix24_list_tasks - список задач\n- bitrix24_update_task - обновить задачу\n- bitrix24_get_all_users - список пользователей\n- bitrix24_add_group_user - добавить участника в проект\n\nВсегда давай структурированные ответы и предлагай разумные дефолтные значения."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [300, 0],
+      "id": "ai-agent",
+      "name": "Project Manager AI"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "={{ $env.BITRIX24_MCP_URL }}",
+        "options": {
+          "toolsSelection": "selected",
+          "tools": [
+            "bitrix24_create_group",
+            "bitrix24_get_group",
+            "bitrix24_list_groups",
+            "bitrix24_list_projects",
+            "bitrix24_update_group",
+            "bitrix24_add_group_user",
+            "bitrix24_remove_group_user",
+            "bitrix24_get_group_users",
+            "bitrix24_create_task",
+            "bitrix24_get_task",
+            "bitrix24_list_tasks",
+            "bitrix24_update_task",
+            "bitrix24_get_all_users"
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [500, 200],
+      "id": "mcp-client",
+      "name": "Bitrix24 MCP"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [300, 200],
+      "id": "openai-model",
+      "name": "GPT-4"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [400, 200],
+      "id": "memory",
+      "name": "Conversation Memory"
+    }
+  ],
+  "connections": {
+    "Chat Interface": {
+      "main": [[{
+        "node": "Project Manager AI",
+        "type": "main",
+        "index": 0
+      }]]
+    },
+    "Bitrix24 MCP": {
+      "ai_tool": [[{
+        "node": "Project Manager AI",
+        "type": "ai_tool",
+        "index": 0
+      }]]
+    },
+    "GPT-4": {
+      "ai_languageModel": [[{
+        "node": "Project Manager AI",
+        "type": "ai_languageModel",
+        "index": 0
+      }]]
+    },
+    "Conversation Memory": {
+      "ai_memory": [[{
+        "node": "Project Manager AI",
+        "type": "ai_memory",
+        "index": 0
+      }]]
+    }
+  },
+  "settings": {},
+  "meta": {
+    "templateId": "bitrix24-project-management"
+  }
+}
