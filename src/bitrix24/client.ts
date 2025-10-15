@@ -230,9 +230,9 @@ export class Bitrix24Client {
               body.append(`order[${orderKey}]`, String(orderValue));
             });
           } else if (key === 'filter' && typeof value === 'object' && value !== null) {
-            // Handle filter parameter specially
+            // Handle filter parameter specially - Bitrix24 expects uppercase FILTER
             Object.entries(value).forEach(([filterKey, filterValue]) => {
-              body.append(`filter[${filterKey}]`, String(filterValue));
+              body.append(`FILTER[${filterKey}]`, String(filterValue));
             });
           } else if (typeof value === 'object' && value !== null) {
             body.append(key, JSON.stringify(value));
@@ -286,8 +286,10 @@ export class Bitrix24Client {
     return result === true;
   }
 
-  async listContacts(params: { start?: number; filter?: Record<string, any> } = {}): Promise<BitrixContact[]> {
-    return await this.makeRequest('crm.contact.list', params);
+  async listContacts(params: { start?: number; filter?: Record<string, any>; includeInactive?: boolean } = {}): Promise<BitrixContact[]> {
+    // Contacts don't have ACTIVE field in standard Bitrix24, so includeInactive doesn't apply
+    const { includeInactive, ...requestParams } = params;
+    return await this.makeRequest('crm.contact.list', requestParams);
   }
 
   // Helper method to get latest contacts with proper ordering
@@ -317,24 +319,44 @@ export class Bitrix24Client {
     return result === true;
   }
 
-  async listDeals(params: { 
-    start?: number; 
+  async listDeals(params: {
+    start?: number;
     filter?: Record<string, any>;
     order?: Record<string, string>;
     select?: string[];
+    includeInactive?: boolean;
   } = {}): Promise<BitrixDeal[]> {
-    return await this.makeRequest('crm.deal.list', params);
+    const { includeInactive, filter, ...otherParams } = params;
+
+    // By default, exclude closed deals (CLOSED='Y')
+    const finalFilter = { ...filter };
+    if (!includeInactive) {
+      finalFilter.CLOSED = 'N';
+    }
+
+    return await this.makeRequest('crm.deal.list', {
+      ...otherParams,
+      filter: finalFilter
+    });
   }
 
   // Helper method to get latest deals with proper ordering
-  async getLatestDeals(limit: number = 20): Promise<BitrixDeal[]> {
+  async getLatestDeals(limit: number = 20, includeInactive: boolean = false): Promise<BitrixDeal[]> {
     // Use Bitrix24's built-in ordering which works correctly
+    const filter: Record<string, any> = {};
+
+    // By default, exclude closed deals
+    if (!includeInactive) {
+      filter.CLOSED = 'N';
+    }
+
     const deals = await this.makeRequest('crm.deal.list', {
       start: 0,
       order: { 'DATE_CREATE': 'DESC' },
-      select: ['*']
+      select: ['*'],
+      filter
     });
-    
+
     return deals.slice(0, limit);
   }
 
@@ -379,24 +401,44 @@ export class Bitrix24Client {
     return result === true;
   }
 
-  async listLeads(params: { 
-    start?: number; 
+  async listLeads(params: {
+    start?: number;
     filter?: Record<string, any>;
     order?: Record<string, string>;
     select?: string[];
+    includeInactive?: boolean;
   } = {}): Promise<BitrixLead[]> {
-    return await this.makeRequest('crm.lead.list', params);
+    const { includeInactive, filter, ...otherParams } = params;
+
+    // By default, only return active leads (STATUS_SEMANTIC_ID='P' for processing)
+    const finalFilter = { ...filter };
+    if (!includeInactive) {
+      finalFilter.STATUS_SEMANTIC_ID = 'P';
+    }
+
+    return await this.makeRequest('crm.lead.list', {
+      ...otherParams,
+      filter: finalFilter
+    });
   }
 
   // Helper method to get latest leads with proper ordering
-  async getLatestLeads(limit: number = 20): Promise<BitrixLead[]> {
+  async getLatestLeads(limit: number = 20, includeInactive: boolean = false): Promise<BitrixLead[]> {
     // Use Bitrix24's built-in ordering which works correctly
+    const filter: Record<string, any> = {};
+
+    // By default, only return active leads
+    if (!includeInactive) {
+      filter.STATUS_SEMANTIC_ID = 'P';
+    }
+
     const leads = await this.makeRequest('crm.lead.list', {
       start: 0,
       order: { 'DATE_CREATE': 'DESC' },
-      select: ['*']
+      select: ['*'],
+      filter
     });
-    
+
     return leads.slice(0, limit);
   }
 
@@ -441,13 +483,16 @@ export class Bitrix24Client {
     return result === true;
   }
 
-  async listCompanies(params: { 
-    start?: number; 
+  async listCompanies(params: {
+    start?: number;
     filter?: Record<string, any>;
     order?: Record<string, string>;
     select?: string[];
+    includeInactive?: boolean;
   } = {}): Promise<BitrixCompany[]> {
-    return await this.makeRequest('crm.company.list', params);
+    // Companies don't have standard ACTIVE field in Bitrix24, so includeInactive doesn't apply
+    const { includeInactive, ...requestParams } = params;
+    return await this.makeRequest('crm.company.list', requestParams);
   }
 
   // Helper method to get latest companies with proper ordering
@@ -619,10 +664,23 @@ export class Bitrix24Client {
     filter?: Record<string, any>;
     order?: Record<string, string>;
     start?: number;
+    includeInactive?: boolean;
   } = {}): Promise<BitrixTask[]> {
     // Bitrix24 tasks API doesn't support select parameter directly - remove it
-    const { select, ...otherParams } = params;
-    const result = await this.makeRequest('tasks.task.list', otherParams);
+    const { select, includeInactive, filter, ...otherParams } = params;
+
+    // By default, exclude completed and deferred tasks (STATUS: 5=Completed, 6=Deferred, 7=Declined)
+    const finalFilter = { ...filter };
+    if (!includeInactive) {
+      // Include only active tasks: 2=Pending, 3=In Progress, 4=Waiting for control
+      // Use @STATUS for array of values
+      finalFilter['@STATUS'] = [2, 3, 4];
+    }
+
+    const result = await this.makeRequest('tasks.task.list', {
+      ...otherParams,
+      filter: finalFilter
+    });
     return result.tasks || [];
   }
 
@@ -1521,8 +1579,20 @@ export class Bitrix24Client {
     start?: number;
     filter?: Record<string, any>;
     order?: Record<string, string>;
+    includeInactive?: boolean;
   } = {}): Promise<BitrixGroup[]> {
-    return await this.makeRequest('sonet_group.get', params);
+    const { includeInactive, filter, ...otherParams } = params;
+
+    // By default, only return non-archived groups (CLOSED='N')
+    const finalFilter = { ...filter };
+    if (!includeInactive) {
+      finalFilter.CLOSED = 'N';
+    }
+
+    return await this.makeRequest('sonet_group.get', {
+      ...otherParams,
+      filter: finalFilter
+    });
   }
 
   // Get groups where user is a member
@@ -1545,10 +1615,19 @@ export class Bitrix24Client {
     start?: number;
     filter?: Record<string, any>;
     order?: Record<string, string>;
+    includeInactive?: boolean;
   } = {}): Promise<BitrixGroup[]> {
-    const filter = { ...params.filter, PROJECT: 'Y' };
+    const { includeInactive, filter: userFilter, ...otherParams } = params;
+
+    const filter: Record<string, any> = { ...userFilter, PROJECT: 'Y' };
+
+    // By default, only return non-archived projects (CLOSED='N')
+    if (!includeInactive) {
+      filter.CLOSED = 'N';
+    }
+
     return await this.makeRequest('sonet_group.get', {
-      ...params,
+      ...otherParams,
       filter
     });
   }

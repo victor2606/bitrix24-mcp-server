@@ -114,14 +114,14 @@ export const getDealTool: Tool = {
 
 export const listDealsTool: Tool = {
   name: 'bitrix24_list_deals',
-  description: 'List deals with optional filtering and ordering',
+  description: 'List deals with optional filtering and ordering. By default, only active (non-closed) deals are returned.',
   inputSchema: {
     type: 'object',
     properties: {
       limit: { type: 'number', description: 'Maximum number of deals to return', default: 20 },
       filter: { type: 'object', description: 'Filter criteria (e.g., {"TITLE": "Project"})' },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE'],
         description: 'Field to order by',
         default: 'DATE_CREATE'
@@ -131,6 +131,11 @@ export const listDealsTool: Tool = {
         enum: ['ASC', 'DESC'],
         description: 'Order direction',
         default: 'DESC'
+      },
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include closed deals (default: false, only active deals)',
+        default: false
       }
     }
   }
@@ -156,11 +161,16 @@ export const updateDealTool: Tool = {
 
 export const getLatestDealsTool: Tool = {
   name: 'bitrix24_get_latest_deals',
-  description: 'Get the most recent deals ordered by creation date',
+  description: 'Get the most recent deals ordered by creation date. By default, only active (non-closed) deals are returned.',
   inputSchema: {
     type: 'object',
     properties: {
-      limit: { type: 'number', description: 'Maximum number of deals to return', default: 20 }
+      limit: { type: 'number', description: 'Maximum number of deals to return', default: 20 },
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include closed deals (default: false, only active deals)',
+        default: false
+      }
     }
   }
 };
@@ -216,14 +226,14 @@ export const getLeadTool: Tool = {
 
 export const listLeadsTool: Tool = {
   name: 'bitrix24_list_leads',
-  description: 'List leads with optional filtering and ordering',
+  description: 'List leads with optional filtering and ordering. By default, only active leads (in processing) are returned.',
   inputSchema: {
     type: 'object',
     properties: {
       limit: { type: 'number', description: 'Maximum number of leads to return', default: 20 },
       filter: { type: 'object', description: 'Filter criteria (e.g., {"STATUS_ID": "NEW"})' },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE'],
         description: 'Field to order by',
         default: 'DATE_CREATE'
@@ -233,6 +243,11 @@ export const listLeadsTool: Tool = {
         enum: ['ASC', 'DESC'],
         description: 'Order direction',
         default: 'DESC'
+      },
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include completed/failed leads (default: false, only active leads)',
+        default: false
       }
     }
   }
@@ -240,11 +255,16 @@ export const listLeadsTool: Tool = {
 
 export const getLatestLeadsTool: Tool = {
   name: 'bitrix24_get_latest_leads',
-  description: 'Get the most recent leads ordered by creation date',
+  description: 'Get the most recent leads ordered by creation date. By default, only active leads (in processing) are returned.',
   inputSchema: {
     type: 'object',
     properties: {
-      limit: { type: 'number', description: 'Maximum number of leads to return', default: 20 }
+      limit: { type: 'number', description: 'Maximum number of leads to return', default: 20 },
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include completed/failed leads (default: false, only active leads)',
+        default: false
+      }
     }
   }
 };
@@ -430,11 +450,11 @@ export const getGroupTool: Tool = {
 
 export const listGroupsTool: Tool = {
   name: 'bitrix24_list_groups',
-  description: 'List all groups/projects with optional filtering',
+  description: 'List all groups/projects with optional filtering. By default, only active groups are returned.',
   inputSchema: {
     type: 'object',
     properties: {
-      filter: { type: 'object', description: 'Filter criteria (e.g., {"ACTIVE": "Y"})' },
+      filter: { type: 'object', description: 'Filter criteria (e.g., {"VISIBLE": "Y"})' },
       orderBy: {
         type: 'string',
         description: 'Field to order by (e.g., DATE_CREATE, NAME)'
@@ -444,6 +464,11 @@ export const listGroupsTool: Tool = {
         enum: ['ASC', 'DESC'],
         description: 'Order direction',
         default: 'DESC'
+      },
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include inactive groups (default: false, only active groups)',
+        default: false
       }
     }
   }
@@ -451,7 +476,7 @@ export const listGroupsTool: Tool = {
 
 export const listProjectsTool: Tool = {
   name: 'bitrix24_list_projects',
-  description: 'List only projects (groups with PROJECT=Y)',
+  description: 'List only projects (groups with PROJECT=Y). By default, only active projects are returned.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -465,6 +490,11 @@ export const listProjectsTool: Tool = {
         enum: ['ASC', 'DESC'],
         description: 'Order direction',
         default: 'DESC'
+      },
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include inactive projects (default: false, only active projects)',
+        default: false
       }
     }
   }
@@ -625,7 +655,7 @@ export const getTaskTool: Tool = {
 
 export const listTasksTool: Tool = {
   name: 'bitrix24_list_tasks',
-  description: 'List tasks with optional filtering and ordering',
+  description: 'List tasks with optional filtering and ordering. By default, only active tasks (pending, in progress, waiting for control) are returned.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -636,6 +666,11 @@ export const listTasksTool: Tool = {
         items: { type: 'string' },
         description: 'Fields to return (default: all)',
         default: ['*']
+      },
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include completed/deferred/declined tasks (default: false, only active tasks)',
+        default: false
       }
     }
   }
@@ -1340,12 +1375,13 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           start: 0,
           filter: args.filter,
           order: dealOrder,
-          select: ['*']
+          select: ['*'],
+          includeInactive: args.includeInactive || false
         });
         return { success: true, deals: deals.slice(0, args.limit || 20) };
 
       case 'bitrix24_get_latest_deals':
-        const latestDeals = await client.getLatestDeals(args.limit || 20);
+        const latestDeals = await client.getLatestDeals(args.limit || 20, args.includeInactive || false);
         return { success: true, deals: latestDeals };
 
       case 'bitrix24_get_deals_from_date_range':
@@ -1397,12 +1433,13 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           start: 0,
           filter: args.filter,
           order: leadOrder,
-          select: ['*']
+          select: ['*'],
+          includeInactive: args.includeInactive || false
         });
         return { success: true, leads: leads.slice(0, args.limit || 20) };
 
       case 'bitrix24_get_latest_leads':
-        const latestLeads = await client.getLatestLeads(args.limit || 20);
+        const latestLeads = await client.getLatestLeads(args.limit || 20, args.includeInactive || false);
         return { success: true, leads: latestLeads };
 
       case 'bitrix24_get_leads_from_date_range':
@@ -1523,7 +1560,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         const groups = await client.listGroups({
           start: 0,
           filter: args.filter,
-          order: Object.keys(groupOrder).length > 0 ? groupOrder : undefined
+          order: Object.keys(groupOrder).length > 0 ? groupOrder : undefined,
+          includeInactive: args.includeInactive || false
         });
         return { success: true, groups };
 
@@ -1536,7 +1574,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         const projects = await client.listProjects({
           start: 0,
           filter: args.filter,
-          order: Object.keys(projectOrder).length > 0 ? projectOrder : undefined
+          order: Object.keys(projectOrder).length > 0 ? projectOrder : undefined,
+          includeInactive: args.includeInactive || false
         });
         return { success: true, projects };
 
@@ -1601,7 +1640,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
       case 'bitrix24_list_tasks':
         const tasks = await client.listTasks({
           filter: args.filter,
-          select: args.select || ['*']
+          select: args.select || ['*'],
+          includeInactive: args.includeInactive || false
         });
         return { success: true, tasks: tasks.slice(0, args.limit || 20) };
 
