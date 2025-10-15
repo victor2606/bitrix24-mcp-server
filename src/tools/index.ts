@@ -1,5 +1,5 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { bitrix24Client, Bitrix24Client, BitrixContact, BitrixDeal, BitrixTask, BitrixLead, BitrixCompany } from '../bitrix24/client.js';
+import { bitrix24Client, Bitrix24Client, BitrixContact, BitrixDeal, BitrixTask, BitrixLead, BitrixCompany, BitrixGroup } from '../bitrix24/client.js';
 
 // Helper function to get client from request arguments
 export function getClientFromRequest(args: any): Bitrix24Client {
@@ -390,6 +390,197 @@ export const getCompaniesFromDateRangeTool: Tool = {
       limit: { type: 'number', description: 'Maximum number of companies to return', default: 50 }
     },
     required: ['startDate']
+  }
+};
+
+// Group/Project Management Tools
+export const createGroupTool: Tool = {
+  name: 'bitrix24_create_group',
+  description: 'Create a new group or project in Bitrix24',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      name: { type: 'string', description: 'Group/Project name' },
+      description: { type: 'string', description: 'Group/Project description' },
+      isProject: { type: 'boolean', description: 'Whether this is a project (true) or regular group (false)', default: false },
+      visible: { type: 'boolean', description: 'Group visibility', default: true },
+      opened: { type: 'boolean', description: 'Open for all users', default: false },
+      closed: { type: 'boolean', description: 'Closed group (by invitation only)', default: false },
+      projectDateStart: { type: 'string', description: 'Project start date in YYYY-MM-DD format' },
+      projectDateFinish: { type: 'string', description: 'Project finish date in YYYY-MM-DD format' },
+      ownerId: { type: 'string', description: 'Owner user ID' },
+      subjectId: { type: 'string', description: 'Subject/Category ID' },
+      keywords: { type: 'string', description: 'Keywords for search' }
+    },
+    required: ['name']
+  }
+};
+
+export const getGroupTool: Tool = {
+  name: 'bitrix24_get_group',
+  description: 'Retrieve group/project information by ID',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      id: { type: 'string', description: 'Group/Project ID' }
+    },
+    required: ['id']
+  }
+};
+
+export const listGroupsTool: Tool = {
+  name: 'bitrix24_list_groups',
+  description: 'List all groups/projects with optional filtering',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      filter: { type: 'object', description: 'Filter criteria (e.g., {"ACTIVE": "Y"})' },
+      orderBy: {
+        type: 'string',
+        description: 'Field to order by (e.g., DATE_CREATE, NAME)'
+      },
+      orderDirection: {
+        type: 'string',
+        enum: ['ASC', 'DESC'],
+        description: 'Order direction',
+        default: 'DESC'
+      }
+    }
+  }
+};
+
+export const listProjectsTool: Tool = {
+  name: 'bitrix24_list_projects',
+  description: 'List only projects (groups with PROJECT=Y)',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      filter: { type: 'object', description: 'Additional filter criteria' },
+      orderBy: {
+        type: 'string',
+        description: 'Field to order by'
+      },
+      orderDirection: {
+        type: 'string',
+        enum: ['ASC', 'DESC'],
+        description: 'Order direction',
+        default: 'DESC'
+      }
+    }
+  }
+};
+
+export const updateGroupTool: Tool = {
+  name: 'bitrix24_update_group',
+  description: 'Update an existing group or project in Bitrix24',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      id: { type: 'string', description: 'Group/Project ID' },
+      name: { type: 'string', description: 'Group/Project name' },
+      description: { type: 'string', description: 'Group/Project description' },
+      visible: { type: 'boolean', description: 'Group visibility' },
+      opened: { type: 'boolean', description: 'Open for all users' },
+      closed: { type: 'boolean', description: 'Closed group (by invitation only)' },
+      projectDateStart: { type: 'string', description: 'Project start date in YYYY-MM-DD format' },
+      projectDateFinish: { type: 'string', description: 'Project finish date in YYYY-MM-DD format' },
+      active: { type: 'boolean', description: 'Group active status' }
+    },
+    required: ['id']
+  }
+};
+
+export const deleteGroupTool: Tool = {
+  name: 'bitrix24_delete_group',
+  description: 'Delete a group or project from Bitrix24',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      id: { type: 'string', description: 'Group/Project ID' }
+    },
+    required: ['id']
+  }
+};
+
+export const getUserGroupsTool: Tool = {
+  name: 'bitrix24_get_user_groups',
+  description: 'Get all groups/projects where a user is a member',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      userId: { type: 'string', description: 'User ID (optional, defaults to current user)' }
+    }
+  }
+};
+
+export const addGroupUserTool: Tool = {
+  name: 'bitrix24_add_group_user',
+  description: 'Add a user to a group or project',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      groupId: { type: 'string', description: 'Group/Project ID' },
+      userId: { type: 'string', description: 'User ID to add' },
+      role: {
+        type: 'string',
+        enum: ['USER', 'MODERATOR'],
+        description: 'User role in the group',
+        default: 'USER'
+      }
+    },
+    required: ['groupId', 'userId']
+  }
+};
+
+export const removeGroupUserTool: Tool = {
+  name: 'bitrix24_remove_group_user',
+  description: 'Remove a user from a group or project',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      groupId: { type: 'string', description: 'Group/Project ID' },
+      userId: { type: 'string', description: 'User ID to remove' }
+    },
+    required: ['groupId', 'userId']
+  }
+};
+
+export const getGroupUsersTool: Tool = {
+  name: 'bitrix24_get_group_users',
+  description: 'Get all members of a group or project',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      groupId: { type: 'string', description: 'Group/Project ID' }
+    },
+    required: ['groupId']
+  }
+};
+
+export const updateGroupUserRoleTool: Tool = {
+  name: 'bitrix24_update_group_user_role',
+  description: 'Update user role in a group or project',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      groupId: { type: 'string', description: 'Group/Project ID' },
+      userId: { type: 'string', description: 'User ID' },
+      role: {
+        type: 'string',
+        enum: ['USER', 'MODERATOR', 'OWNER'],
+        description: 'New role for the user'
+      }
+    },
+    required: ['groupId', 'userId', 'role']
+  }
+};
+
+export const getGroupSubjectsTool: Tool = {
+  name: 'bitrix24_get_group_subjects',
+  description: 'Get available group/project subjects/categories',
+  inputSchema: {
+    type: 'object',
+    properties: {}
   }
 };
 
@@ -1028,6 +1219,19 @@ export const allTools = [
   updateCompanyTool,
   getLatestCompaniesTool,
   getCompaniesFromDateRangeTool,
+  // Group/Project Management Tools
+  createGroupTool,
+  getGroupTool,
+  listGroupsTool,
+  listProjectsTool,
+  updateGroupTool,
+  deleteGroupTool,
+  getUserGroupsTool,
+  addGroupUserTool,
+  removeGroupUserTool,
+  getGroupUsersTool,
+  updateGroupUserRoleTool,
+  getGroupSubjectsTool,
   createTaskTool,
   getTaskTool,
   listTasksTool,
@@ -1287,6 +1491,96 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           args.limit || 50
         );
         return { success: true, companies: dateRangeCompanies };
+
+      // Group/Project Management Tools
+      case 'bitrix24_create_group':
+        const group: BitrixGroup = {
+          NAME: args.name,
+          DESCRIPTION: args.description,
+          PROJECT: args.isProject ? 'Y' : 'N',
+          VISIBLE: args.visible !== false ? 'Y' : 'N',
+          OPENED: args.opened ? 'Y' : 'N',
+          CLOSED: args.closed ? 'Y' : 'N',
+          PROJECT_DATE_START: args.projectDateStart,
+          PROJECT_DATE_FINISH: args.projectDateFinish,
+          OWNER_ID: args.ownerId,
+          SUBJECT_ID: args.subjectId,
+          KEYWORDS: args.keywords
+        };
+        const groupId = await client.createGroup(group);
+        return { success: true, groupId, message: `${args.isProject ? 'Project' : 'Group'} created with ID: ${groupId}` };
+
+      case 'bitrix24_get_group':
+        const groupData = await client.getGroup(args.id);
+        return { success: true, group: groupData };
+
+      case 'bitrix24_list_groups':
+        const groupOrder: Record<string, string> = {};
+        if (args.orderBy) {
+          groupOrder[args.orderBy] = args.orderDirection || 'DESC';
+        }
+
+        const groups = await client.listGroups({
+          start: 0,
+          filter: args.filter,
+          order: Object.keys(groupOrder).length > 0 ? groupOrder : undefined
+        });
+        return { success: true, groups };
+
+      case 'bitrix24_list_projects':
+        const projectOrder: Record<string, string> = {};
+        if (args.orderBy) {
+          projectOrder[args.orderBy] = args.orderDirection || 'DESC';
+        }
+
+        const projects = await client.listProjects({
+          start: 0,
+          filter: args.filter,
+          order: Object.keys(projectOrder).length > 0 ? projectOrder : undefined
+        });
+        return { success: true, projects };
+
+      case 'bitrix24_update_group':
+        const updateGroup: Partial<BitrixGroup> = {};
+        if (args.name) updateGroup.NAME = args.name;
+        if (args.description !== undefined) updateGroup.DESCRIPTION = args.description;
+        if (args.visible !== undefined) updateGroup.VISIBLE = args.visible ? 'Y' : 'N';
+        if (args.opened !== undefined) updateGroup.OPENED = args.opened ? 'Y' : 'N';
+        if (args.closed !== undefined) updateGroup.CLOSED = args.closed ? 'Y' : 'N';
+        if (args.projectDateStart) updateGroup.PROJECT_DATE_START = args.projectDateStart;
+        if (args.projectDateFinish) updateGroup.PROJECT_DATE_FINISH = args.projectDateFinish;
+        if (args.active !== undefined) updateGroup.ACTIVE = args.active ? 'Y' : 'N';
+
+        const groupUpdated = await client.updateGroup(args.id, updateGroup);
+        return { success: true, updated: groupUpdated, message: `Group ${args.id} updated successfully` };
+
+      case 'bitrix24_delete_group':
+        const groupDeleted = await client.deleteGroup(args.id);
+        return { success: true, deleted: groupDeleted, message: `Group ${args.id} deleted successfully` };
+
+      case 'bitrix24_get_user_groups':
+        const userGroups = await client.getUserGroups(args.userId);
+        return { success: true, groups: userGroups };
+
+      case 'bitrix24_add_group_user':
+        const userAdded = await client.addGroupUser(args.groupId, args.userId, args.role || 'USER');
+        return { success: true, added: userAdded, message: `User ${args.userId} added to group ${args.groupId}` };
+
+      case 'bitrix24_remove_group_user':
+        const userRemoved = await client.removeGroupUser(args.groupId, args.userId);
+        return { success: true, removed: userRemoved, message: `User ${args.userId} removed from group ${args.groupId}` };
+
+      case 'bitrix24_get_group_users':
+        const groupUsers = await client.getGroupUsers(args.groupId);
+        return { success: true, users: groupUsers };
+
+      case 'bitrix24_update_group_user_role':
+        const roleUpdated = await client.updateGroupUserRole(args.groupId, args.userId, args.role);
+        return { success: true, updated: roleUpdated, message: `User ${args.userId} role updated to ${args.role} in group ${args.groupId}` };
+
+      case 'bitrix24_get_group_subjects':
+        const subjects = await client.getGroupSubjects();
+        return { success: true, subjects };
 
       case 'bitrix24_create_task':
         const task: BitrixTask = {

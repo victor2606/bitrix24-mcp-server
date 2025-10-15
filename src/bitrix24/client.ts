@@ -133,6 +133,30 @@ export interface BitrixCompany {
   DATE_MODIFY?: string;
 }
 
+export interface BitrixGroup {
+  ID?: string;
+  NAME?: string;
+  DESCRIPTION?: string;
+  OWNER_ID?: string;
+  VISIBLE?: 'Y' | 'N'; // Group visibility
+  OPENED?: 'Y' | 'N'; // Open for all users
+  CLOSED?: 'Y' | 'N'; // Closed group (by invitation only)
+  PROJECT?: 'Y' | 'N'; // Is project
+  PROJECT_DATE_START?: string; // Project start date
+  PROJECT_DATE_FINISH?: string; // Project finish date
+  SUBJECT_ID?: string; // Subject/Category ID
+  IMAGE_ID?: string; // Group image file ID
+  KEYWORDS?: string; // Keywords for search
+  NUMBER_OF_MEMBERS?: string; // Number of members
+  NUMBER_OF_MODERATORS?: string; // Number of moderators
+  INITIATE_PERMS?: string; // Who can initiate discussions (A=All, E=Employees, K=Moderators+Owner, L=Owner)
+  SPAM_PERMS?: string; // Anti-spam settings
+  DATE_CREATE?: string;
+  DATE_UPDATE?: string;
+  ACTIVE?: 'Y' | 'N'; // Is active
+  TAGS?: string; // Tags
+}
+
 export class Bitrix24Client {
   private baseUrl: string;
   private requestCount = 0;
@@ -1431,6 +1455,143 @@ export class Bitrix24Client {
   async forecastPerformance(forecastType: string, userId?: string, options: any = {}): Promise<any> {
     // Implementation for performance forecasting
     return { message: 'Performance forecasting - implementation in progress' };
+  }
+
+  // Group/Project Management Methods
+  async createGroup(group: BitrixGroup): Promise<string> {
+    const result = await this.makeRequest('sonet_group.create', {
+      NAME: group.NAME,
+      DESCRIPTION: group.DESCRIPTION,
+      VISIBLE: group.VISIBLE || 'Y',
+      OPENED: group.OPENED || 'N',
+      CLOSED: group.CLOSED || 'N',
+      PROJECT: group.PROJECT || 'N',
+      PROJECT_DATE_START: group.PROJECT_DATE_START,
+      PROJECT_DATE_FINISH: group.PROJECT_DATE_FINISH,
+      SUBJECT_ID: group.SUBJECT_ID,
+      KEYWORDS: group.KEYWORDS,
+      IMAGE_ID: group.IMAGE_ID,
+      OWNER_ID: group.OWNER_ID,
+      INITIATE_PERMS: group.INITIATE_PERMS || 'E',
+      SPAM_PERMS: group.SPAM_PERMS || 'K'
+    });
+    return result.toString();
+  }
+
+  async getGroup(id: string): Promise<BitrixGroup> {
+    const result = await this.makeRequest('sonet_group.get', {
+      filter: { ID: id }
+    });
+    // sonet_group.get always returns an array
+    if (Array.isArray(result) && result.length > 0) {
+      return result[0];
+    }
+    throw new Error(`Group ${id} not found`);
+  }
+
+  async updateGroup(id: string, group: Partial<BitrixGroup>): Promise<boolean> {
+    const params: Record<string, any> = { GROUP_ID: id };
+
+    if (group.NAME) params.NAME = group.NAME;
+    if (group.DESCRIPTION !== undefined) params.DESCRIPTION = group.DESCRIPTION;
+    if (group.VISIBLE) params.VISIBLE = group.VISIBLE;
+    if (group.OPENED) params.OPENED = group.OPENED;
+    if (group.CLOSED) params.CLOSED = group.CLOSED;
+    if (group.PROJECT) params.PROJECT = group.PROJECT;
+    if (group.PROJECT_DATE_START) params.PROJECT_DATE_START = group.PROJECT_DATE_START;
+    if (group.PROJECT_DATE_FINISH) params.PROJECT_DATE_FINISH = group.PROJECT_DATE_FINISH;
+    if (group.SUBJECT_ID) params.SUBJECT_ID = group.SUBJECT_ID;
+    if (group.KEYWORDS) params.KEYWORDS = group.KEYWORDS;
+    if (group.IMAGE_ID) params.IMAGE_ID = group.IMAGE_ID;
+    if (group.OWNER_ID) params.OWNER_ID = group.OWNER_ID;
+    if (group.INITIATE_PERMS) params.INITIATE_PERMS = group.INITIATE_PERMS;
+    if (group.SPAM_PERMS) params.SPAM_PERMS = group.SPAM_PERMS;
+    if (group.ACTIVE) params.ACTIVE = group.ACTIVE;
+
+    const result = await this.makeRequest('sonet_group.update', params);
+    return typeof result === 'string' || result === true;
+  }
+
+  async deleteGroup(id: string): Promise<boolean> {
+    const result = await this.makeRequest('sonet_group.delete', { GROUP_ID: id });
+    return result === true;
+  }
+
+  async listGroups(params: {
+    start?: number;
+    filter?: Record<string, any>;
+    order?: Record<string, string>;
+  } = {}): Promise<BitrixGroup[]> {
+    return await this.makeRequest('sonet_group.get', params);
+  }
+
+  // Get groups where user is a member
+  async getUserGroups(userId?: string): Promise<BitrixGroup[]> {
+    // sonet_group.user.get requires either userId or GROUP_ID
+    // To get all groups for a user, we should just call listGroups
+    // and filter by user membership on the client side
+    // For now, return all groups the API gives us
+    if (userId) {
+      // If userId is provided, get groups for that user
+      return await this.makeRequest('sonet_group.user.groups', { USER_ID: userId });
+    } else {
+      // If no userId, get all groups and let Bitrix24 filter by current user
+      return await this.listGroups({});
+    }
+  }
+
+  // Get only projects (groups with PROJECT=Y)
+  async listProjects(params: {
+    start?: number;
+    filter?: Record<string, any>;
+    order?: Record<string, string>;
+  } = {}): Promise<BitrixGroup[]> {
+    const filter = { ...params.filter, PROJECT: 'Y' };
+    return await this.makeRequest('sonet_group.get', {
+      ...params,
+      filter
+    });
+  }
+
+  // Add user to group/project
+  async addGroupUser(groupId: string, userId: string, role: 'MODERATOR' | 'USER' = 'USER'): Promise<boolean> {
+    const result = await this.makeRequest('sonet_group.user.add', {
+      GROUP_ID: groupId,
+      USER_ID: userId,
+      ROLE: role
+    });
+    return result === true;
+  }
+
+  // Remove user from group/project
+  async removeGroupUser(groupId: string, userId: string): Promise<boolean> {
+    const result = await this.makeRequest('sonet_group.user.delete', {
+      GROUP_ID: groupId,
+      USER_ID: userId
+    });
+    return result === true;
+  }
+
+  // Get group members
+  async getGroupUsers(groupId: string): Promise<any[]> {
+    return await this.makeRequest('sonet_group.user.get', {
+      id: groupId
+    });
+  }
+
+  // Update user role in group
+  async updateGroupUserRole(groupId: string, userId: string, role: 'MODERATOR' | 'USER' | 'OWNER'): Promise<boolean> {
+    const result = await this.makeRequest('sonet_group.user.update', {
+      GROUP_ID: groupId,
+      USER_ID: userId,
+      ROLE: role
+    });
+    return result === true;
+  }
+
+  // Get group subjects/categories
+  async getGroupSubjects(): Promise<any[]> {
+    return await this.makeRequest('sonet_group.subject.get');
   }
 }
 
