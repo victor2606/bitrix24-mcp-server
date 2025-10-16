@@ -107,3 +107,4 @@ package-deploy.json
 .deployment
 deploy.cmd
 CLAUDE.md
+.claude/

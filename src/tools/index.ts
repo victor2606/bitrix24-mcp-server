@@ -349,8 +349,8 @@ export const listCompaniesTool: Tool = {
     properties: {
       limit: { type: 'number', description: 'Maximum number of companies to return', default: 20 },
       filter: { type: 'object', description: 'Filter criteria (e.g., {"TITLE": "Tech Corp"})' },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE'],
         description: 'Field to order by',
         default: 'DATE_CREATE'
@@ -495,6 +495,20 @@ export const listProjectsTool: Tool = {
         type: 'boolean',
         description: 'Include inactive projects (default: false, only active projects)',
         default: false
+      }
+    }
+  }
+};
+
+export const listProjectsWithMembersTool: Tool = {
+  name: 'bitrix24_list_projects_with_members',
+  description: 'Get all projects with their members in one request. Returns projects with member details including user names and roles.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      includeInactive: {
+        type: 'boolean',
+        description: 'Include inactive/archived projects (default: false, only active projects)'
       }
     }
   }
@@ -796,9 +810,9 @@ export const getDealStagesTool: Tool = {
   inputSchema: {
     type: 'object',
     properties: {
-      pipelineId: { 
-        type: 'string', 
-        description: 'Pipeline ID to get stages for (optional - if not provided, gets all stages)' 
+      pipelineId: {
+        type: 'string',
+        description: 'Pipeline ID to get stages for (optional - if not provided, gets all stages)'
       }
     }
   }
@@ -810,17 +824,17 @@ export const filterDealsByPipelineTool: Tool = {
   inputSchema: {
     type: 'object',
     properties: {
-      pipelineId: { 
-        type: 'string', 
-        description: 'Pipeline/Category ID to filter by' 
+      pipelineId: {
+        type: 'string',
+        description: 'Pipeline/Category ID to filter by'
       },
-      limit: { 
-        type: 'number', 
-        description: 'Maximum number of deals to return', 
-        default: 50 
+      limit: {
+        type: 'number',
+        description: 'Maximum number of deals to return',
+        default: 50
       },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE', 'OPPORTUNITY'],
         description: 'Field to order by',
         default: 'DATE_CREATE'
@@ -842,26 +856,26 @@ export const filterDealsByBudgetTool: Tool = {
   inputSchema: {
     type: 'object',
     properties: {
-      minBudget: { 
-        type: 'number', 
-        description: 'Minimum budget amount' 
+      minBudget: {
+        type: 'number',
+        description: 'Minimum budget amount'
       },
-      maxBudget: { 
-        type: 'number', 
-        description: 'Maximum budget amount (optional)' 
+      maxBudget: {
+        type: 'number',
+        description: 'Maximum budget amount (optional)'
       },
-      currency: { 
-        type: 'string', 
-        description: 'Currency code (e.g., EUR, USD)', 
-        default: 'EUR' 
+      currency: {
+        type: 'string',
+        description: 'Currency code (e.g., EUR, USD)',
+        default: 'EUR'
       },
-      limit: { 
-        type: 'number', 
-        description: 'Maximum number of deals to return', 
-        default: 50 
+      limit: {
+        type: 'number',
+        description: 'Maximum number of deals to return',
+        default: 50
       },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE', 'OPPORTUNITY'],
         description: 'Field to order by',
         default: 'OPPORTUNITY'
@@ -883,22 +897,22 @@ export const filterDealsByStatusTool: Tool = {
   inputSchema: {
     type: 'object',
     properties: {
-      stageIds: { 
+      stageIds: {
         type: 'array',
         items: { type: 'string' },
-        description: 'Array of stage IDs to filter by' 
+        description: 'Array of stage IDs to filter by'
       },
-      pipelineId: { 
-        type: 'string', 
-        description: 'Pipeline ID to limit search to (optional)' 
+      pipelineId: {
+        type: 'string',
+        description: 'Pipeline ID to limit search to (optional)'
       },
-      limit: { 
-        type: 'number', 
-        description: 'Maximum number of deals to return', 
-        default: 50 
+      limit: {
+        type: 'number',
+        description: 'Maximum number of deals to return',
+        default: 50
       },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE', 'OPPORTUNITY'],
         description: 'Field to order by',
         default: 'DATE_CREATE'
@@ -977,8 +991,8 @@ export const compareUserPerformanceTool: Tool = {
       userIds: { type: 'array', items: { type: 'string' }, description: 'Array of user IDs to compare (optional - if not provided, compares all users)' },
       startDate: { type: 'string', description: 'Start date in YYYY-MM-DD format' },
       endDate: { type: 'string', description: 'End date in YYYY-MM-DD format (optional - defaults to today)' },
-      metrics: { 
-        type: 'array', 
+      metrics: {
+        type: 'array',
         items: { type: 'string', enum: ['activities', 'deals', 'conversions', 'response_times', 'timeline_engagement'] },
         description: 'Specific metrics to compare',
         default: ['activities', 'deals', 'conversions']
@@ -1033,16 +1047,16 @@ export const generateSalesReportTool: Tool = {
   inputSchema: {
     type: 'object',
     properties: {
-      reportType: { 
-        type: 'string', 
+      reportType: {
+        type: 'string',
         enum: ['user_performance', 'account_analysis', 'team_summary', 'pipeline_analysis', 'activity_report'],
         description: 'Type of report to generate'
       },
       startDate: { type: 'string', description: 'Start date in YYYY-MM-DD format' },
       endDate: { type: 'string', description: 'End date in YYYY-MM-DD format (optional - defaults to today)' },
       userIds: { type: 'array', items: { type: 'string' }, description: 'Specific user IDs to include (optional)' },
-      includeMetrics: { 
-        type: 'array', 
+      includeMetrics: {
+        type: 'array',
         items: { type: 'string', enum: ['revenue', 'conversion_rates', 'activity_volumes', 'response_times', 'deal_progression'] },
         description: 'Specific metrics to include in report',
         default: ['revenue', 'conversion_rates', 'activity_volumes']
@@ -1064,8 +1078,8 @@ export const getTeamDashboardTool: Tool = {
       includeTopPerformers: { type: 'boolean', description: 'Include top performers identification', default: true },
       includeAttentionNeeded: { type: 'boolean', description: 'Include accounts/deals needing attention', default: true },
       includeWorkloadDistribution: { type: 'boolean', description: 'Include workload distribution analysis', default: true },
-      timeframe: { 
-        type: 'string', 
+      timeframe: {
+        type: 'string',
         enum: ['today', 'week', 'month', 'quarter'],
         description: 'Timeframe for dashboard metrics',
         default: 'today'
@@ -1100,20 +1114,20 @@ export const forecastPerformanceTool: Tool = {
   inputSchema: {
     type: 'object',
     properties: {
-      forecastType: { 
-        type: 'string', 
+      forecastType: {
+        type: 'string',
         enum: ['pipeline_forecast', 'user_performance', 'revenue_prediction', 'goal_achievement'],
         description: 'Type of forecast to generate'
       },
       userId: { type: 'string', description: 'User ID to forecast (optional - if not provided, forecasts for all users)' },
-      historicalPeriod: { 
-        type: 'string', 
+      historicalPeriod: {
+        type: 'string',
         enum: ['3_months', '6_months', '1_year'],
         description: 'Historical period to use for forecasting',
         default: '6_months'
       },
-      forecastPeriod: { 
-        type: 'string', 
+      forecastPeriod: {
+        type: 'string',
         enum: ['1_month', '3_months', '6_months'],
         description: 'Period to forecast into the future',
         default: '1_month'
@@ -1161,10 +1175,10 @@ export const resolveUserNamesTool: Tool = {
   inputSchema: {
     type: 'object',
     properties: {
-      userIds: { 
-        type: 'array', 
+      userIds: {
+        type: 'array',
         items: { type: 'string' },
-        description: 'Array of user IDs to resolve to names' 
+        description: 'Array of user IDs to resolve to names'
       }
     },
     required: ['userIds']
@@ -1191,8 +1205,8 @@ export const getDealsWithUserNamesTool: Tool = {
     properties: {
       limit: { type: 'number', description: 'Maximum number of deals to return', default: 20 },
       filter: { type: 'object', description: 'Filter criteria' },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE', 'OPPORTUNITY'],
         description: 'Field to order by',
         default: 'DATE_CREATE'
@@ -1215,8 +1229,8 @@ export const getLeadsWithUserNamesTool: Tool = {
     properties: {
       limit: { type: 'number', description: 'Maximum number of leads to return', default: 20 },
       filter: { type: 'object', description: 'Filter criteria' },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE'],
         description: 'Field to order by',
         default: 'DATE_CREATE'
@@ -1239,8 +1253,8 @@ export const getCompaniesWithUserNamesTool: Tool = {
     properties: {
       limit: { type: 'number', description: 'Maximum number of companies to return', default: 20 },
       filter: { type: 'object', description: 'Filter criteria' },
-      orderBy: { 
-        type: 'string', 
+      orderBy: {
+        type: 'string',
         enum: ['DATE_CREATE', 'DATE_MODIFY', 'ID', 'TITLE'],
         description: 'Field to order by',
         default: 'DATE_CREATE'
@@ -1254,6 +1268,77 @@ export const getCompaniesWithUserNamesTool: Tool = {
     }
   }
 };
+
+// Open Lines (Открытые линии) Analytics Tools
+export const getOpenLinesConfigTool: Tool = {
+  name: 'bitrix24_get_openlines_config',
+  description: 'Get list of configured Open Lines channels for analytics',
+  inputSchema: {
+    type: 'object',
+    properties: {}
+  }
+};
+
+export const getRecentOpenLinesChatsTool: Tool = {
+  name: 'bitrix24_get_openlines_recent_chats',
+  description: 'Get recent Open Lines chats with pagination support',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      lastMessageDate: { type: 'string', description: 'ISO date string for pagination (optional)' },
+      limit: { type: 'number', description: 'Maximum number of chats to return', default: 20 }
+    }
+  }
+};
+
+export const getOpenLineDialogTool: Tool = {
+  name: 'bitrix24_get_openline_dialog',
+  description: 'Get Open Line session details (requires at least one parameter: chatId, sessionId, or userCode)',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      chatId: { type: 'string', description: 'Chat ID (optional)' },
+      sessionId: { type: 'string', description: 'Session ID (optional)' },
+      userCode: { type: 'string', description: 'User code (optional)' }
+    }
+  }
+};
+
+export const getOpenLineMessagesTool: Tool = {
+  name: 'bitrix24_get_openline_messages',
+  description: 'Get Open Line message history with pagination support',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      dialogId: { type: 'string', description: 'Dialog ID' },
+      limit: { type: 'number', description: 'Maximum number of messages to return', default: 50 },
+      lastId: { type: 'number', description: 'Last message ID for pagination (optional)' },
+      firstId: { type: 'number', description: 'First message ID for pagination (optional)' }
+    },
+    required: ['dialogId']
+  }
+};
+
+export const getOpenLinesActivitiesTool: Tool = {
+  name: 'bitrix24_get_openlines_activities',
+  description: 'Get Open Lines activities from CRM for analytics (main method for Open Lines analytics)',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      startDate: { type: 'string', description: 'Start date in YYYY-MM-DD format' },
+      endDate: { type: 'string', description: 'End date in YYYY-MM-DD format (optional)' },
+      ownerId: { type: 'string', description: 'CRM entity ID to filter by (optional)' },
+      ownerType: {
+        type: 'string',
+        enum: ['contact', 'company', 'deal', 'lead'],
+        description: 'CRM entity type (optional, required if ownerId is provided)'
+      },
+      limit: { type: 'number', description: 'Maximum number of activities to return', default: 50 }
+    },
+    required: ['startDate']
+  }
+};
+
 
 // Export all tools
 export const allTools = [
@@ -1285,6 +1370,7 @@ export const allTools = [
   getGroupTool,
   listGroupsTool,
   listProjectsTool,
+  listProjectsWithMembersTool,
   searchProjectsTool,
   updateGroupTool,
   deleteGroupTool,
@@ -1327,7 +1413,13 @@ export const allTools = [
   getContactsWithUserNamesTool,
   getDealsWithUserNamesTool,
   getLeadsWithUserNamesTool,
-  getCompaniesWithUserNamesTool
+  getCompaniesWithUserNamesTool,
+  // Open Lines Analytics Tools
+  getOpenLinesConfigTool,
+  getRecentOpenLinesChatsTool,
+  getOpenLineDialogTool,
+  getOpenLineMessagesTool,
+  getOpenLinesActivitiesTool
 ];
 
 // Tool execution handlers
@@ -1518,7 +1610,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
       case 'bitrix24_list_companies':
         const companyOrder: Record<string, string> = {};
         companyOrder[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
-        
+
         const companies = await client.listCompanies({
           start: 0,
           filter: args.filter,
@@ -1540,7 +1632,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         if (args.revenue) updateCompany.REVENUE = args.revenue;
         if (args.comments) updateCompany.COMMENTS = args.comments;
         if (args.assignedById) updateCompany.ASSIGNED_BY_ID = args.assignedById;
-        
+
         const companyUpdated = await client.updateCompany(args.id, updateCompany);
         return { success: true, updated: companyUpdated, message: `Company ${args.id} updated successfully` };
 
@@ -1605,6 +1697,12 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           includeInactive: args.includeInactive || false
         });
         return { success: true, projects };
+
+      case 'bitrix24_list_projects_with_members':
+        const projectsWithMembers = await client.listProjectsWithMembers({
+          includeInactive: args.includeInactive || false
+        });
+        return { success: true, projects: projectsWithMembers, total: projectsWithMembers.length };
 
       case 'bitrix24_search_projects':
         const allProjects = await client.listProjects({
@@ -1736,17 +1834,17 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           orderBy: args.orderBy,
           orderDirection: args.orderDirection
         });
-        return { 
-          success: true, 
-          deals: pipelineDeals, 
+        return {
+          success: true,
+          deals: pipelineDeals,
           count: pipelineDeals.length,
-          message: `Found ${pipelineDeals.length} deals in pipeline ${args.pipelineId}` 
+          message: `Found ${pipelineDeals.length} deals in pipeline ${args.pipelineId}`
         };
 
       case 'bitrix24_filter_deals_by_budget':
         const budgetDeals = await client.filterDealsByBudget(
-          args.minBudget, 
-          args.maxBudget, 
+          args.minBudget,
+          args.maxBudget,
           args.currency || 'EUR',
           {
             limit: args.limit,
@@ -1754,19 +1852,19 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             orderDirection: args.orderDirection
           }
         );
-        const budgetMessage = args.maxBudget 
+        const budgetMessage = args.maxBudget
           ? `Found ${budgetDeals.length} deals with budget between ${args.minBudget} and ${args.maxBudget} ${args.currency || 'EUR'}`
           : `Found ${budgetDeals.length} deals with budget ≥ ${args.minBudget} ${args.currency || 'EUR'}`;
-        return { 
-          success: true, 
-          deals: budgetDeals, 
+        return {
+          success: true,
+          deals: budgetDeals,
           count: budgetDeals.length,
           message: budgetMessage
         };
 
       case 'bitrix24_filter_deals_by_status':
         const statusDeals = await client.filterDealsByStatus(
-          args.stageIds, 
+          args.stageIds,
           args.pipelineId,
           {
             limit: args.limit,
@@ -1777,9 +1875,9 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         const statusMessage = args.pipelineId
           ? `Found ${statusDeals.length} deals with stages [${args.stageIds.join(', ')}] in pipeline ${args.pipelineId}`
           : `Found ${statusDeals.length} deals with stages [${args.stageIds.join(', ')}]`;
-        return { 
-          success: true, 
-          deals: statusDeals, 
+        return {
+          success: true,
+          deals: statusDeals,
           count: statusDeals.length,
           message: statusMessage
         };
@@ -1797,8 +1895,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             includeResponseTimes: args.includeResponseTimes
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           activities: userActivities,
           message: `User activity monitoring completed for period ${args.startDate} to ${args.endDate || 'today'}`
         };
@@ -1814,8 +1912,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             includeConversionRates: args.includeConversionRates
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           performance: performanceSummary,
           message: `Performance summary generated for period ${args.startDate} to ${args.endDate || 'today'}`
         };
@@ -1832,8 +1930,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             includeTimelineHistory: args.includeTimelineHistory
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           accountAnalysis: accountPerformance,
           message: `Account performance analysis completed for ${args.accountType} ${args.accountId}`
         };
@@ -1849,8 +1947,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             includeTrends: args.includeTrends
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           comparison: userComparison,
           message: `User performance comparison completed for ${args.userIds?.length || 'all'} users`
         };
@@ -1868,8 +1966,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             calculateVelocity: args.calculateVelocity
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           progression: dealProgression,
           message: `Deal progression tracking completed for period ${args.startDate} to ${args.endDate || 'today'}`
         };
@@ -1886,8 +1984,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             includeQuoteActivity: args.includeQuoteActivity
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           salesActivities: salesActivities,
           message: `Sales activities monitoring completed for period ${args.startDate} to ${args.endDate || 'today'}`
         };
@@ -1904,8 +2002,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             includeComparisons: args.includeComparisons
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           report: salesReport,
           message: `${args.reportType} report generated for period ${args.startDate} to ${args.endDate || 'today'}`
         };
@@ -1918,8 +2016,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
           includeWorkloadDistribution: args.includeWorkloadDistribution,
           timeframe: args.timeframe
         });
-        return { 
-          success: true, 
+        return {
+          success: true,
           dashboard: teamDashboard,
           message: `Team dashboard generated for timeframe: ${args.timeframe || 'today'}`
         };
@@ -1938,8 +2036,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             includeRelationshipHealth: args.includeRelationshipHealth
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           engagement: customerEngagement,
           message: `Customer engagement analysis completed for period ${args.startDate} to ${args.endDate || 'today'}`
         };
@@ -1956,8 +2054,8 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
             includeGoalTracking: args.includeGoalTracking
           }
         );
-        return { 
-          success: true, 
+        return {
+          success: true,
           forecast: performanceForecast,
           message: `${args.forecastType} forecast generated using ${args.historicalPeriod || '6_months'} of historical data`
         };
@@ -2007,7 +2105,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
       case 'bitrix24_get_deals_with_user_names':
         const dealOrderWithNames: Record<string, string> = {};
         dealOrderWithNames[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
-        
+
         const dealsRaw = await client.listDeals({
           start: 0,
           filter: args.filter,
@@ -2020,7 +2118,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
       case 'bitrix24_get_leads_with_user_names':
         const leadOrderWithNames: Record<string, string> = {};
         leadOrderWithNames[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
-        
+
         const leadsRaw = await client.listLeads({
           start: 0,
           filter: args.filter,
@@ -2033,7 +2131,7 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
       case 'bitrix24_get_companies_with_user_names':
         const companyOrderWithNames: Record<string, string> = {};
         companyOrderWithNames[args.orderBy || 'DATE_CREATE'] = args.orderDirection || 'DESC';
-        
+
         const companiesRaw = await client.listCompanies({
           start: 0,
           filter: args.filter,
@@ -2042,6 +2140,75 @@ export async function executeToolCall(name: string, args: any): Promise<any> {
         });
         const companiesWithNames = await client.enhanceWithUserNames(companiesRaw.slice(0, args.limit || 20));
         return { success: true, companies: companiesWithNames, message: `Retrieved ${companiesWithNames.length} companies with user names resolved` };
+
+
+      // Open Lines Analytics Tools
+      case 'bitrix24_get_openlines_config':
+        const openlinesConfig = await client.getOpenLinesConfig();
+        return {
+          success: true,
+          config: openlinesConfig,
+          count: openlinesConfig.length,
+          message: `Found ${openlinesConfig.length} configured Open Lines channels`
+        };
+
+      case 'bitrix24_get_openlines_recent_chats':
+        const recentChats = await client.getRecentOpenLinesChats({
+          lastMessageDate: args.lastMessageDate,
+          limit: args.limit || 20
+        });
+        return {
+          success: true,
+          chats: recentChats,
+          count: recentChats.length,
+          message: `Retrieved ${recentChats.length} recent Open Lines chats`
+        };
+
+      case 'bitrix24_get_openline_dialog':
+        const dialogData = await client.getOpenLineDialog({
+          chatId: args.chatId,
+          sessionId: args.sessionId,
+          userCode: args.userCode
+        });
+        return {
+          success: true,
+          dialog: dialogData,
+          message: 'Open Line dialog details retrieved successfully'
+        };
+
+      case 'bitrix24_get_openline_messages':
+        const messages = await client.getOpenLineMessages(args.dialogId, {
+          limit: args.limit || 50,
+          lastId: args.lastId,
+          firstId: args.firstId
+        });
+        return {
+          success: true,
+          messages: messages,
+          count: messages.length,
+          message: `Retrieved ${messages.length} messages from dialog ${args.dialogId}`
+        };
+
+      case 'bitrix24_get_openlines_activities':
+        const openlinesActivities = await client.getOpenLinesActivities({
+          startDate: args.startDate,
+          endDate: args.endDate,
+          ownerId: args.ownerId,
+          ownerType: args.ownerType,
+          limit: args.limit || 50
+        });
+        const periodMsg = args.endDate
+          ? `from ${args.startDate} to ${args.endDate}`
+          : `from ${args.startDate}`;
+        const ownerMsg = args.ownerId
+          ? ` for ${args.ownerType} ${args.ownerId}`
+          : '';
+        return {
+          success: true,
+          activities: openlinesActivities,
+          count: openlinesActivities.length,
+          message: `Found ${openlinesActivities.length} Open Lines activities ${periodMsg}${ownerMsg}`
+        };
 
       default:
         throw new Error(`Unknown tool: ${name}`);

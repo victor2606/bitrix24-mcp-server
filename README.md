@@ -4,7 +4,9 @@ A comprehensive Model Context Protocol (MCP) server for Bitrix24 CRM integration
 
 ## 🚀 Features
 
-- **Complete CRM Management**: Create, read, update, and list contacts, deals, and tasks
+- **Complete CRM Management**: Create, read, update, and list contacts, deals, leads, companies, and tasks
+- **Open Lines Analytics** ✨: Access chat history, sessions, and analytics from Telegram, WhatsApp, LiveChat and other channels
+- **Sales Team Monitoring**: Track user activities, performance metrics, and generate comprehensive reports
 - **Advanced Search**: Search across all CRM entities with flexible filtering
 - **Rate Limiting**: Built-in rate limiting to respect Bitrix24 API limits
 - **Type Safety**: Full TypeScript implementation with comprehensive type definitions
@@ -82,6 +84,13 @@ A comprehensive Model Context Protocol (MCP) server for Bitrix24 CRM integration
 - `bitrix24_get_team_dashboard` - Get real-time team performance dashboard
 - `bitrix24_analyze_customer_engagement` - Analyze customer engagement patterns and relationship health
 - `bitrix24_forecast_performance` - Generate performance forecasts and predictive analytics
+
+### Open Lines (Live Chat) Analytics ✨ NEW
+- `bitrix24_get_openlines_config` - Get list of configured Open Lines channels
+- `bitrix24_get_openlines_recent_chats` - Get recent Open Lines conversations
+- `bitrix24_get_openline_dialog` - Get Open Lines session/dialog details
+- `bitrix24_get_openline_messages` - Get message history from Open Lines dialog
+- `bitrix24_get_openlines_activities` - Get Open Lines activities from CRM (main analytics method)
 
 ## 🛠️ Installation
 
@@ -345,6 +354,60 @@ case 'bitrix24_new_action':
 ```
 
 3. Add to `allTools` array and rebuild.
+
+## 🧪 Testing
+
+The project includes comprehensive E2E tests for all functionality.
+
+### Running Tests
+
+```bash
+# Run all integration tests
+npm test
+
+# Run Open Lines API tests
+node test/openlines.test.js
+
+# Build and run tests
+npm run build && npm test
+```
+
+### Test Coverage
+
+**Integration Tests** (`test/integration.test.js`):
+- Webhook validation
+- Contact management (create, retrieve, list)
+- Deal creation
+- Task creation with CRM links
+
+**Open Lines Tests** (`test/openlines.test.js`):
+- Open Lines configuration
+- Recent chats listing
+- Dialog/session details
+- Message history
+- CRM activities (analytics)
+- Edge cases and error handling
+
+### Test Output
+
+Tests provide detailed output including:
+- ✅ Passed tests with details
+- ❌ Failed tests with error messages
+- ⏭️ Skipped tests with reasons (e.g., permission limitations)
+- 📊 Summary statistics with success rate
+
+### Permission Requirements
+
+**Webhook Token** (Default):
+- ✅ All CRM methods work (contacts, deals, leads, companies, tasks)
+- ✅ `getOpenLinesActivities()` works for analytics
+- ❌ Direct Open Lines chat methods require OAuth app
+
+**OAuth App** (Full Access):
+- ✅ All features available
+- Required scopes: `imopenlines`, `im`, `crm`
+
+See `test/README.md` for detailed test documentation.
 
 ## 🔒 Security Considerations
 

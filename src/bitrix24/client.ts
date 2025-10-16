@@ -170,13 +170,13 @@ export class Bitrix24Client {
   private async enforceRateLimit(): Promise<void> {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
-    
+
     if (timeSinceLastRequest < this.RATE_LIMIT_DELAY) {
-      await new Promise(resolve => 
+      await new Promise(resolve =>
         setTimeout(resolve, this.RATE_LIMIT_DELAY - timeSinceLastRequest)
       );
     }
-    
+
     this.lastRequestTime = Date.now();
     this.requestCount++;
   }
@@ -185,10 +185,10 @@ export class Bitrix24Client {
     await this.enforceRateLimit();
 
     const url = `${this.baseUrl}/${method}`;
-    
+
     try {
       let response;
-      
+
       if (Object.keys(params).length === 0) {
         // GET request for methods without parameters
         response = await fetch(url, {
@@ -200,7 +200,7 @@ export class Bitrix24Client {
       } else {
         // POST request with form data
         const body = new URLSearchParams();
-        
+
         Object.entries(params).forEach(([key, value]) => {
           if (key === 'fields' && typeof value === 'object' && value !== null) {
             // For fields parameter, we need to send each field as a separate parameter
@@ -259,7 +259,7 @@ export class Bitrix24Client {
 
       const data = await response.json();
       const parsed = BitrixResponseSchema.parse(data);
-      
+
       if (parsed.error) {
         throw new Error(`Bitrix24 API Error: ${parsed.error.error} - ${parsed.error.error_description}`);
       }
@@ -300,7 +300,7 @@ export class Bitrix24Client {
       order: { 'DATE_CREATE': 'DESC' },
       select: ['*']
     });
-    
+
     return contacts.slice(0, limit);
   }
 
@@ -365,7 +365,7 @@ export class Bitrix24Client {
     const filter: Record<string, any> = {
       '>=DATE_CREATE': startDate
     };
-    
+
     if (endDate) {
       filter['<=DATE_CREATE'] = endDate;
     }
@@ -375,14 +375,14 @@ export class Bitrix24Client {
       select: ['*'],
       filter
     });
-    
+
     // Sort by DATE_CREATE in JavaScript for consistency
     const sortedDeals = deals.sort((a: BitrixDeal, b: BitrixDeal) => {
       const dateA = new Date(a.DATE_CREATE || '1970-01-01');
       const dateB = new Date(b.DATE_CREATE || '1970-01-01');
       return dateB.getTime() - dateA.getTime(); // DESC order (newest first)
     });
-    
+
     return sortedDeals.slice(0, limit);
   }
 
@@ -447,7 +447,7 @@ export class Bitrix24Client {
     const filter: Record<string, any> = {
       '>=DATE_CREATE': startDate
     };
-    
+
     if (endDate) {
       filter['<=DATE_CREATE'] = endDate;
     }
@@ -457,14 +457,14 @@ export class Bitrix24Client {
       select: ['*'],
       filter
     });
-    
+
     // Sort by DATE_CREATE in JavaScript
     const sortedLeads = leads.sort((a: BitrixLead, b: BitrixLead) => {
       const dateA = new Date(a.DATE_CREATE || '1970-01-01');
       const dateB = new Date(b.DATE_CREATE || '1970-01-01');
       return dateB.getTime() - dateA.getTime(); // DESC order (newest first)
     });
-    
+
     return sortedLeads.slice(0, limit);
   }
 
@@ -502,7 +502,7 @@ export class Bitrix24Client {
       order: { 'DATE_CREATE': 'DESC' },
       select: ['*']
     });
-    
+
     return companies.slice(0, limit);
   }
 
@@ -511,7 +511,7 @@ export class Bitrix24Client {
     const filter: Record<string, any> = {
       '>=DATE_CREATE': startDate
     };
-    
+
     if (endDate) {
       filter['<=DATE_CREATE'] = endDate;
     }
@@ -521,14 +521,14 @@ export class Bitrix24Client {
       select: ['*'],
       filter
     });
-    
+
     // Sort by DATE_CREATE in JavaScript for consistency
     const sortedCompanies = companies.sort((a: BitrixCompany, b: BitrixCompany) => {
       const dateA = new Date(a.DATE_CREATE || '1970-01-01');
       const dateB = new Date(b.DATE_CREATE || '1970-01-01');
       return dateB.getTime() - dateA.getTime(); // DESC order (newest first)
     });
-    
+
     return sortedCompanies.slice(0, limit);
   }
 
@@ -721,7 +721,7 @@ export class Bitrix24Client {
 
   async resolveUserNames(userIds: string[]): Promise<Record<string, string>> {
     const userMap: Record<string, string> = {};
-    
+
     try {
       const users = await this.getUsersByIds(userIds);
       for (const user of users) {
@@ -735,7 +735,7 @@ export class Bitrix24Client {
         userMap[id] = `User ${id}`;
       });
     }
-    
+
     return userMap;
   }
 
@@ -745,7 +745,7 @@ export class Bitrix24Client {
   ): Promise<T[]> {
     // Collect all unique user IDs
     const allUserIds = new Set<string>();
-    
+
     items.forEach(item => {
       userIdFields.forEach(field => {
         if (item[field] && typeof item[field] === 'string') {
@@ -760,13 +760,13 @@ export class Bitrix24Client {
     // Enhance items with user names
     return items.map(item => {
       const enhanced = { ...item } as any;
-      
+
       userIdFields.forEach(field => {
         if (item[field] && userNames[item[field]]) {
           enhanced[`${field}_NAME`] = userNames[item[field]];
         }
       });
-      
+
       return enhanced as T;
     });
   }
@@ -965,7 +965,7 @@ export class Bitrix24Client {
     try {
       // Get users to monitor
       const users = userId ? [{ ID: userId }] : await this.makeRequest('user.get');
-      
+
       for (const user of users) {
         const userMetrics: any = {
           userId: user.ID,
@@ -985,7 +985,7 @@ export class Bitrix24Client {
               },
               select: ['ID', 'DATE_CREATE', 'DIRECTION', 'SUBJECT']
             });
-            
+
             userMetrics.activities.calls = {
               total: callActivities.length,
               incoming: callActivities.filter((a: any) => a.DIRECTION === '1').length,
@@ -1009,7 +1009,7 @@ export class Bitrix24Client {
               },
               select: ['ID', 'DATE_CREATE', 'DIRECTION', 'SUBJECT']
             });
-            
+
             userMetrics.activities.emails = {
               total: emailActivities.length,
               incoming: emailActivities.filter((a: any) => a.DIRECTION === '1').length,
@@ -1031,7 +1031,7 @@ export class Bitrix24Client {
                 '<=DATE_CREATE': endDateToUse
               }
             });
-            
+
             userMetrics.activities.timeline = {
               total: timelineEntries.length,
               details: timelineEntries
@@ -1090,7 +1090,7 @@ export class Bitrix24Client {
 
     try {
       const users = userId ? [{ ID: userId }] : await this.makeRequest('user.get');
-      
+
       for (const user of users) {
         const userPerformance: any = {
           userId: user.ID,
@@ -1148,7 +1148,7 @@ export class Bitrix24Client {
             userPerformance.metrics.activityRatios = {
               total: activities.length,
               breakdown: activityCounts,
-              callsToEmails: activityCounts['2'] && activityCounts['4'] ? 
+              callsToEmails: activityCounts['2'] && activityCounts['4'] ?
                 (activityCounts['2'] / activityCounts['4']).toFixed(2) : 'N/A'
             };
           } catch (error) {
@@ -1178,7 +1178,7 @@ export class Bitrix24Client {
             });
 
             const convertedLeads = leads.filter((l: any) => l.STATUS_ID === 'CONVERTED').length;
-            const leadToDealConversion = leads.length > 0 ? 
+            const leadToDealConversion = leads.length > 0 ?
               (convertedLeads / leads.length * 100).toFixed(2) : '0';
 
             userPerformance.metrics.conversionRates = {
@@ -1223,16 +1223,16 @@ export class Bitrix24Client {
 
     try {
       // Get account details
-      const accountData = accountType === 'company' 
+      const accountData = accountType === 'company'
         ? await this.getCompany(accountId)
         : await this.getContact(accountId);
-      
+
       results.accountDetails = accountData;
 
       // Get all interactions
       if (options.includeAllInteractions) {
         const filterKey = accountType === 'company' ? 'COMPANY_ID' : 'CONTACT_ID';
-        
+
         const activities = await this.makeRequest('crm.activity.list', {
           filter: {
             [filterKey]: accountId,
@@ -1261,7 +1261,7 @@ export class Bitrix24Client {
       // Deal progression
       if (options.includeDealProgression) {
         const filterKey = accountType === 'company' ? 'COMPANY_ID' : 'CONTACT_ID';
-        
+
         const deals = await this.makeRequest('crm.deal.list', {
           filter: {
             [filterKey]: accountId,
@@ -1286,7 +1286,7 @@ export class Bitrix24Client {
       // Timeline history
       if (options.includeTimelineHistory) {
         const entityType = accountType === 'company' ? 'COMPANY' : 'CONTACT';
-        
+
         try {
           const timelineEntries = await this.makeRequest('crm.timeline.comment.list', {
             filter: {
@@ -1331,8 +1331,8 @@ export class Bitrix24Client {
     };
 
     try {
-      const users = userIds?.length ? 
-        userIds.map(id => ({ ID: id })) : 
+      const users = userIds?.length ?
+        userIds.map(id => ({ ID: id })) :
         await this.makeRequest('user.get');
 
       const metricsToCompare = options.metrics || ['activities', 'deals', 'conversions'];
@@ -1375,7 +1375,7 @@ export class Bitrix24Client {
           });
 
           const wonDeals = deals.filter((d: any) => d.STAGE_ID?.includes('WON') || d.STAGE_ID?.includes('SUCCESS'));
-          
+
           userComparison.metrics.deals = {
             total: deals.length,
             won: wonDeals.length,
@@ -1397,7 +1397,7 @@ export class Bitrix24Client {
           });
 
           const convertedLeads = leads.filter((l: any) => l.STATUS_ID === 'CONVERTED').length;
-          
+
           userComparison.metrics.conversions = {
             totalLeads: leads.length,
             convertedLeads: convertedLeads,
@@ -1424,14 +1424,14 @@ export class Bitrix24Client {
   private calculateResponseTimes(activities: any[]): any {
     const incomingActivities = activities.filter(a => a.DIRECTION === '1');
     const outgoingActivities = activities.filter(a => a.DIRECTION === '2');
-    
+
     const responseTimes: number[] = [];
-    
+
     incomingActivities.forEach(incoming => {
-      const nextOutgoing = outgoingActivities.find(outgoing => 
+      const nextOutgoing = outgoingActivities.find(outgoing =>
         new Date(outgoing.DATE_CREATE) > new Date(incoming.DATE_CREATE)
       );
-      
+
       if (nextOutgoing) {
         const responseTime = new Date(nextOutgoing.DATE_CREATE).getTime() - new Date(incoming.DATE_CREATE).getTime();
         responseTimes.push(responseTime / (1000 * 60 * 60)); // Convert to hours
@@ -1439,8 +1439,8 @@ export class Bitrix24Client {
     });
 
     return {
-      averageResponseTime: responseTimes.length > 0 ? 
-        (responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length).toFixed(2) + ' hours' : 
+      averageResponseTime: responseTimes.length > 0 ?
+        (responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length).toFixed(2) + ' hours' :
         'N/A',
       totalResponses: responseTimes.length,
       fastestResponse: responseTimes.length > 0 ? Math.min(...responseTimes).toFixed(2) + ' hours' : 'N/A',
@@ -1450,10 +1450,10 @@ export class Bitrix24Client {
 
   private generateUserRankings(comparison: any, metrics: string[]): any {
     const rankings: any = {};
-    
+
     metrics.forEach(metric => {
       const users = Object.values(comparison) as any[];
-      
+
       switch (metric) {
         case 'activities':
           rankings.activities = users
@@ -1661,7 +1661,7 @@ export class Bitrix24Client {
   // Get group members
   async getGroupUsers(groupId: string): Promise<any[]> {
     return await this.makeRequest('sonet_group.user.get', {
-      id: groupId
+      ID: groupId
     });
   }
 
@@ -1678,6 +1678,200 @@ export class Bitrix24Client {
   // Get group subjects/categories
   async getGroupSubjects(): Promise<any[]> {
     return await this.makeRequest('sonet_group.subject.get');
+  }
+
+  // List projects with members
+  async listProjectsWithMembers(params: {
+    includeInactive?: boolean;
+    filter?: Record<string, any>;
+    order?: Record<string, string>;
+  } = {}): Promise<Array<{
+    project: BitrixGroup;
+    members: Array<{
+      USER_ID: string;
+      USER_NAME: string;
+      ROLE: string;
+    }>;
+  }>> {
+    // Get all projects
+    const projects = await this.listProjects(params);
+
+    // For each project, get members
+    const projectsWithMembers = [];
+
+    for (const project of projects) {
+      try {
+        // Get group members
+        const members = await this.getGroupUsers(project.ID!);
+
+        // Collect user IDs
+        const userIds = members.map(m => m.USER_ID).filter(Boolean);
+
+        // Resolve user names
+        const userNames = await this.resolveUserNames(userIds);
+
+        // Enhance members with names
+        const enhancedMembers = members.map(member => ({
+          USER_ID: member.USER_ID,
+          USER_NAME: userNames[member.USER_ID] || `User ${member.USER_ID}`,
+          ROLE: member.ROLE
+        }));
+
+        projectsWithMembers.push({
+          project,
+          members: enhancedMembers
+        });
+      } catch (error) {
+        console.error(`Error fetching members for project ${project.ID}:`, error);
+        projectsWithMembers.push({
+          project,
+          members: []
+        });
+      }
+    }
+
+    return projectsWithMembers;
+  }
+
+  // Open Lines (Открытые линии) Methods
+
+  /**
+   * Get list of configured Open Lines channels
+   * @returns Array of Open Lines configurations with channel types
+   */
+  async getOpenLinesConfig(): Promise<any[]> {
+    return await this.makeRequest('imopenlines.config.list.get');
+  }
+
+  /**
+   * Get recent Open Lines chats
+   * @param options Configuration options
+   * @param options.lastMessageDate ISO date string for pagination (optional)
+   * @param options.limit Maximum number of chats to return (default: 20)
+   * @returns Array of recent chats with metadata
+   */
+  async getRecentOpenLinesChats(options?: {
+    lastMessageDate?: string;
+    limit?: number;
+  }): Promise<any[]> {
+    const params: Record<string, any> = {
+      SKIP_OPENLINES: 'N'
+    };
+
+    if (options?.lastMessageDate) {
+      params.LAST_MESSAGE_DATE = options.lastMessageDate;
+    }
+
+    const result = await this.makeRequest('im.recent.list', params);
+    const limit = options?.limit || 20;
+
+    return Array.isArray(result) ? result.slice(0, limit) : [];
+  }
+
+  /**
+   * Get Open Line session details
+   * @param params At least one parameter is required
+   * @param params.chatId Chat ID (optional)
+   * @param params.sessionId Session ID (optional)
+   * @param params.userCode User code (optional)
+   * @returns Session information including operator, customer, channel, and timestamps
+   */
+  async getOpenLineDialog(params: {
+    chatId?: string;
+    sessionId?: string;
+    userCode?: string;
+  }): Promise<any> {
+    if (!params.chatId && !params.sessionId && !params.userCode) {
+      throw new Error('At least one parameter (chatId, sessionId, or userCode) is required');
+    }
+
+    const requestParams: Record<string, any> = {};
+
+    if (params.chatId) requestParams.CHAT_ID = params.chatId;
+    if (params.sessionId) requestParams.SESSION_ID = params.sessionId;
+    if (params.userCode) requestParams.USER_CODE = params.userCode;
+
+    return await this.makeRequest('imopenlines.dialog.get', requestParams);
+  }
+
+  /**
+   * Get Open Line message history
+   * @param dialogId Dialog ID
+   * @param options Pagination options
+   * @param options.limit Maximum number of messages to return (default: 50)
+   * @param options.lastId Last message ID for pagination (optional)
+   * @param options.firstId First message ID for pagination (optional)
+   * @returns Array of messages with timestamps
+   */
+  async getOpenLineMessages(dialogId: string, options?: {
+    limit?: number;
+    lastId?: number;
+    firstId?: number;
+  }): Promise<any[]> {
+    const params: Record<string, any> = {
+      DIALOG_ID: dialogId
+    };
+
+    if (options?.limit) params.LIMIT = options.limit;
+    if (options?.lastId) params.LAST_ID = options.lastId;
+    if (options?.firstId) params.FIRST_ID = options.firstId;
+
+    const result = await this.makeRequest('im.dialog.messages.get', params);
+    return result?.messages || [];
+  }
+
+  /**
+   * Get Open Lines activities from CRM (main method for analytics)
+   * @param options Filter and pagination options
+   * @param options.startDate Start date in YYYY-MM-DD format (required)
+   * @param options.endDate End date in YYYY-MM-DD format (optional)
+   * @param options.ownerId CRM entity ID (optional)
+   * @param options.ownerType CRM entity type: contact, company, deal, or lead (optional)
+   * @param options.limit Maximum number of activities to return (default: 50)
+   * @returns Array of CRM activities linked to contacts/deals/leads
+   */
+  async getOpenLinesActivities(options: {
+    startDate: string;
+    endDate?: string;
+    ownerId?: string;
+    ownerType?: 'contact' | 'company' | 'deal' | 'lead';
+    limit?: number;
+  }): Promise<any[]> {
+    const filter: Record<string, any> = {
+      PROVIDER_ID: 'OPENLINES',
+      '>=DATE_CREATE': options.startDate
+    };
+
+    if (options.endDate) {
+      filter['<DATE_CREATE'] = options.endDate;
+    }
+
+    if (options.ownerId && options.ownerType) {
+      const ownerTypeMap = {
+        contact: 'OWNER_TYPE_ID',
+        company: 'OWNER_TYPE_ID',
+        deal: 'OWNER_TYPE_ID',
+        lead: 'OWNER_TYPE_ID'
+      };
+
+      const ownerValueMap = {
+        contact: 3,
+        company: 4,
+        deal: 2,
+        lead: 1
+      };
+
+      filter.OWNER_ID = options.ownerId;
+      filter.OWNER_TYPE_ID = ownerValueMap[options.ownerType];
+    }
+
+    const result = await this.makeRequest('crm.activity.list', {
+      filter,
+      select: ['*']
+    });
+
+    const limit = options.limit || 50;
+    return Array.isArray(result) ? result.slice(0, limit) : [];
   }
 }
 
