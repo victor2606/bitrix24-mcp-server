@@ -691,7 +691,9 @@ export class Bitrix24Client {
 
   // User Management Methods
   async getUser(userId: string): Promise<any> {
-    return await this.makeRequest('user.get', { ID: userId });
+    const result = await this.makeRequest('user.get', { ID: userId });
+    // Bitrix24 user.get always returns array, take first element
+    return Array.isArray(result) && result.length > 0 ? result[0] : result;
   }
 
   async getAllUsers(includeInactive: boolean = false): Promise<any[]> {
